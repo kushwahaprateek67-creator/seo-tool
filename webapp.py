@@ -3,37 +3,49 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-st.subheader("ईमेल सेटिंग्स")
+st.subheader("Bulk Email Tool")
 
-# स्क्रीन पर इनपुट बॉक्स बनाने का कोड
-sender_name = st.text_input("भेजने वाले का नाम (Sender Name)", placeholder="जैसे: Prateek Kushwaha")
-sender_email = st.text_input("आपकी जीमेल आईडी (Your Gmail)", placeholder="example@gmail.com")
-sender_password = st.text_input("आपका ऐप पासवर्ड", type="password") # पासवर्ड टाइप करते समय छिपेगा
-receiver_email = st.text_input("पाने वाले का ईमेल (Client/Receiver Email)")
-message_body = st.text_area("अपना मैसेज यहाँ लिखें")
+# केवल आपकी माँगी गई 6 चीजें
+name = st.text_input("Name (आपका नाम)")
+gmail_id = st.text_input("Gmail ID (आपकी ईमेल)")
+app_password = st.text_input("App Password", type="password")
+subject_line = st.text_input("Subject Line (विषय)")
+email_template = st.text_area("Email Template (आपका मैसेज)")
+email_list = st.text_area("Email List (ईमेल आईडी, कॉमा ',' लगाकर लिखें)")
 
-# जब यूजर 'ईमेल भेजें' बटन दबाएगा
-if st.button("ईमेल भेजें"):
-    if sender_name and sender_email and sender_password and receiver_email:
+# बटन
+if st.button("Send Emails"):
+    # चेक करना कि सभी बॉक्स भरे हैं या नहीं
+    if name and gmail_id and app_password and subject_line and email_template and email_list:
+        
+        # कॉमा (,) से ईमेल अलग करना
+        receiver_list = [email.strip() for email in email_list.split(",")]
+        
         try:
-            # ईमेल तैयार करना
-            msg = MIMEMultipart()
-            # यहाँ आपका डाला हुआ नाम और ईमेल अपने आप सेट हो जाएगा
-            msg['From'] = f"{sender_name} <{sender_email}>"
-            msg['To'] = receiver_email
-            msg['Subject'] = "SEO Tool से नया मैसेज"
-            
-            msg.attach(MIMEText(message_body, 'plain'))
-            
-            # ईमेल भेजने का प्रोसेस
+            # जीमेल सर्वर से कनेक्ट करना
             server = smtplib.SMTP('smtp.gmail.com', 587)
             server.starttls()
-            server.login(sender_email, sender_password)
-            server.sendmail(sender_email, receiver_email, msg.as_string())
-            server.quit()
+            server.login(gmail_id, app_password)
             
-            st.success("✅ ईमेल सफलतापूर्वक भेज दी गई है!")
+            success_count = 0
+            
+            # एक-एक करके ईमेल भेजना
+            for receiver_email in receiver_list:
+                if receiver_email:
+                    msg = MIMEMultipart()
+                    msg['From'] = f"{name} <{gmail_id}>"
+                    msg['To'] = receiver_email
+                    msg['Subject'] = subject_line
+                    
+                    msg.attach(MIMEText(email_template, 'plain'))
+                    
+                    server.sendmail(gmail_id, receiver_email, msg.as_string())
+                    success_count += 1
+            
+            server.quit()
+            st.success(f"✅ कुल {success_count} ईमेल सफलतापूर्वक भेज दिए गए हैं!")
+            
         except Exception as e:
-            st.error(f"❌ ईमेल भेजने में दिक्कत आई: {e}")
+            st.error(f"❌ एरर: {e}")
     else:
-        st.warning("⚠️ कृपया ऊपर दिए गए सभी बॉक्स भरें!")
+        st.warning("⚠️ कृपया ऊपर दिए गए सभी 6 बॉक्स भरें!")
