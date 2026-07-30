@@ -6,11 +6,16 @@ from email.mime.multipart import MIMEMultipart
 # पेज सेटिंग
 st.set_page_config(page_title="Bulk Email Tool", layout="wide")
 
-# एक हल्का, साफ और अच्छा बैकग्राउंड रंग
+# हल्का बैकग्राउंड रंग और लेबल्स को डार्क (Bold & Black) करने के लिए CSS
 st.markdown("""
     <style>
     .stApp {
         background-color: #eef2f5; 
+    }
+    label p {
+        font-weight: 800 !important;
+        color: #000000 !important;
+        font-size: 16px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -25,17 +30,18 @@ col1, col2 = st.columns(2)
 with col1:
     with st.container(border=True):  # बॉक्स के लिए
         st.subheader("1. अकाउंट डिटेल्स")
-        sender_name = st.text_input("Sender Name")
-        gmail_id = st.text_input("Gmail ID")
-        app_password = st.text_input("App Password", type="password")
+        # लेबल्स को ** लगाकर डार्क किया गया है
+        sender_name = st.text_input("**Sender Name**")
+        gmail_id = st.text_input("**Gmail ID**")
+        app_password = st.text_input("**App Password**", type="password")
 
 # दूसरा भाग - ईमेल मैसेज और डेटा
 with col2:
     with st.container(border=True):  # बॉक्स के लिए
         st.subheader("2. संदेश और डेटा")
-        subject_line = st.text_input("Subject Line")
-        email_template = st.text_area("Email Template", height=100)
-        data = st.text_area("Data (Email IDs - हर लाइन में एक)", height=100)
+        subject_line = st.text_input("**Subject Line**")
+        email_template = st.text_area("**Email Template**", height=100)
+        data = st.text_area("**Data (Email IDs - हर लाइन में एक)**", height=100)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -67,7 +73,11 @@ if st.button("🚀 Send Mail"):
                     success_count += 1
                     
                 server.quit()
-                # सक्सेस का ऑप्शन (सफलतापूर्वक जाने पर)
+                
+                # यहाँ लास्ट में एनिमेशन जोड़ दिया गया है
+                st.balloons() 
+                
+                # सक्सेस का ऑप्शन
                 st.success(f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक भेज दिए गए!")
             except Exception as e:
                 # फेल होने पर स्पष्ट एरर फील्ड
