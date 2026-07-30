@@ -3,39 +3,72 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-st.title("Bulk Email Tool")
+# पेज सेटिंग
+st.set_page_config(page_title="Bulk Email Tool", layout="wide")
 
-# एकदम सीधे और साधारण इनपुट फील्ड्स
-sender_name = st.text_input("Sender Name")
-gmail_id = st.text_input("Gmail ID")
-app_password = st.text_input("App Password", type="password")
-subject_line = st.text_input("Subject Line")
-email_template = st.text_area("Email Template")
-data = st.text_area("Data (Email IDs - हर लाइन में एक)")
+# एक हल्का, साफ और अच्छा बैकग्राउंड रंग
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #eef2f5; 
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-if st.button("Send Mail"):
+st.title("✉️ Bulk Email Tool")
+st.markdown("---")
+
+# लेआउट को दो भागों (कॉलम) में बाँटना
+col1, col2 = st.columns(2)
+
+# पहला भाग - अकाउंट की जानकारी
+with col1:
+    with st.container(border=True):  # बॉक्स के लिए
+        st.subheader("1. अकाउंट डिटेल्स")
+        sender_name = st.text_input("Sender Name")
+        gmail_id = st.text_input("Gmail ID")
+        app_password = st.text_input("App Password", type="password")
+
+# दूसरा भाग - ईमेल मैसेज और डेटा
+with col2:
+    with st.container(border=True):  # बॉक्स के लिए
+        st.subheader("2. संदेश और डेटा")
+        subject_line = st.text_input("Subject Line")
+        email_template = st.text_area("Email Template", height=100)
+        data = st.text_area("Data (Email IDs - हर लाइन में एक)", height=100)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# सेंड बटन
+if st.button("🚀 Send Mail"):
     if not sender_name or not gmail_id or not app_password or not data:
-        st.warning("कृपया सभी ज़रूरी जानकारी भरें!")
+        # फील्ड खाली होने पर एरर मैसेज
+        st.error("⚠️ कृपया सभी ज़रूरी जानकारी (Sender Name, Gmail ID, Password और Data) भरें!")
     else:
         emails_list = [email.strip() for email in data.split('\n') if email.strip()]
         
-        try:
-            server = smtplib.SMTP('smtp.gmail.com', 587)
-            server.starttls()
-            server.login(gmail_id, app_password)
-            
-            for rcv_email in emails_list:
-                personalized_body = email_template.replace("{sender}", sender_name)
+        with st.spinner("ईमेल भेजे जा रहे हैं, कृपया प्रतीक्षा करें..."):
+            try:
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(gmail_id, app_password)
                 
-                msg = MIMEMultipart()
-                msg['From'] = f"{sender_name} <{gmail_id}>"
-                msg['To'] = rcv_email
-                msg['Subject'] = subject_line
-                msg.attach(MIMEText(personalized_body, 'plain'))
-                
-                server.sendmail(gmail_id, rcv_email, msg.as_string())
-                
-            server.quit()
-            st.success(f"सफलतापूर्वक {len(emails_list)} ईमेल भेज दिए गए!")
-        except Exception as e:
-            st.error(f"ईमेल भेजने में एरर: {e}")
+                success_count = 0
+                for rcv_email in emails_list:
+                    personalized_body = email_template.replace("{sender}", sender_name)
+                    
+                    msg = MIMEMultipart()
+                    msg['From'] = f"{sender_name} <{gmail_id}>"
+                    msg['To'] = rcv_email
+                    msg['Subject'] = subject_line
+                    msg.attach(MIMEText(personalized_body, 'plain'))
+                    
+                    server.sendmail(gmail_id, rcv_email, msg.as_string())
+                    success_count += 1
+                    
+                server.quit()
+                # सक्सेस का ऑप्शन (सफलतापूर्वक जाने पर)
+                st.success(f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक भेज दिए गए!")
+            except Exception as e:
+                # फेल होने पर स्पष्ट एरर फील्ड
+                st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
