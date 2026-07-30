@@ -3,88 +3,90 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-# पेज की सेटिंग (Wide Mode)
-st.set_page_config(page_title="Professional Email Automation Tool", page_icon="📧", layout="centered")
+# पेज की सेटिंग
+st.set_page_config(page_title="Colorful Email Automation Tool", page_icon="🎨", layout="centered")
 
-# मॉडर्न और खूबसूरत लुक के लिए Custom CSS
+# कलरफुल और आकर्षक Custom CSS
 st.markdown("""
     <style>
     .main {
-        background-color: #f8f9fa;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
     .stButton>button {
         width: 100%;
-        background-color: #0066cc;
+        background: linear-gradient(90deg, #ff416c 0%, #ff4b2b 100%);
         color: white;
         font-weight: bold;
-        border-radius: 8px;
-        height: 45px;
+        border-radius: 12px;
+        height: 50px;
+        font-size: 16px;
         border: none;
+        box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
         transition: 0.3s;
     }
     .stButton>button:hover {
-        background-color: #004c99;
+        background: linear-gradient(90deg, #ff4b2b 0%, #ff416c 100%);
+        box-shadow: 0 6px 20px rgba(255, 75, 43, 0.6);
         color: #ffffff;
     }
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        border-radius: 8px;
-        border: 1px solid #ced4da;
-    }
-    .card {
-        padding: 20px;
         border-radius: 10px;
-        background-color: white;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        margin-bottom: 20px;
+        border: 2px solid #ff758c;
+        background-color: #fff0f3;
+    }
+    .header-title {
+        background: linear-gradient(90deg, #ff758c, #ff7eb3);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        text-align: center;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# साइडबार में सेटिंग्स और जानकारी
+# साइडबार को कलरफुल और स्टाइलिश बनाना
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/281/281769.png", width=70)
-    st.markdown("### ⚙️ सेटिंग्स & गाइड")
-    st.info("यह टूल आपके आउटलुक (Outlook) या माइक्रोसॉफ्ट अकाउंट के माध्यम से सुरक्षित रूप से ईमेल भेजता है।")
+    st.markdown("### 🎨 कलरफुल सेटिंग्स")
+    st.success("आपका टूल पूरी तरह से एक्टिव है!")
     st.markdown("---")
-    st.markdown("**डेवलपर:** Prateek")
-    st.markdown("**स्टेटस:** `Live & Active`")
+    st.markdown("✨ **थीम:** मॉडर्न वाइब्रेंट")
+    st.markdown("💻 **डेवलपर:** Prateek")
 
-# मुख्य हेडर
-st.markdown("<h2 style='text-align: center; color: #1f2937;'>📧 स्मार्ट ईमेल ऑटोमेशन टूल</h2>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #6b7280;'>अपने ग्राहकों या दोस्तों को आसानी से प्रोफेशनल ईमेल भेजें।</p>", unsafe_allow_html=True)
+# मुख्य हेडर (कलरफुल)
+st.markdown("<h1 class='header-title'>🎨 स्मार्ट ईमेल ऑटोमेशन टूल</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #555; font-weight: 500;'>अब अपने ईमेल भेजें एक नए और रंगीन अंदाज़ में!</p>", unsafe_allow_html=True)
 st.markdown("---")
 
 # फॉर्म लेआउट
-with st.container():
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        sender_email = st.text_input("📤 आपका ईमेल (Sender Email)", placeholder="example@outlook.com")
-    
-    with col2:
-        sender_password = st.text_input("🔑 ऐप पासवर्ड (App Password)", type="password", placeholder="पासवर्ड दर्ज करें")
+col1, col2 = st.columns(2)
+
+with col1:
+    sender_email = st.text_input("📤 आपका ईमेल (Sender Email)", placeholder="example@outlook.com")
+
+with col2:
+    sender_password = st.text_input("🔑 ऐप पासवर्ड (App Password)", type="password", placeholder="पासवर्ड दर्ज करें")
 
 receiver_email = st.text_input("📥 प्राप्तकर्ता का ईमेल (Receiver Email)", placeholder="receiver@example.com")
-email_subject = st.text_input("📌 विषय (Subject)", value="महत्वपूर्ण अपडेट या सूचना")
+email_subject = st.text_input("📌 विषय (Subject)", value="✨ विशेष अपडेट और सूचना")
 
 # डिफ़ॉल्ट टेक्स्ट / मैसेज बॉक्स
-default_message = """नमस्ते,
+default_message = """नमस्ते!
 
-यह एक डिफ़ॉल्ट मैसेज है जो ऐप खुलते ही दिखाई देगा। 
-आप इस टेक्स्ट को मिटाकर अपना नया मैसेज यहाँ लिख सकते हैं।
+यह एक डिफ़ॉल्ट कलरफुल मैसेज है जो ऐप खुलते ही दिखाई देगा। 
+आप इस टेक्स्ट को बदलकर अपना नया मैसेज लिख सकते हैं।
 
-धन्यवाद!"""
+शुभकामनाएं! 🌟"""
 
 email_body = st.text_area("📝 संदेश (Message Body)", value=default_message, height=160)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ईमेल भेजने का बटन
-if st.button("🚀 अब ईमेल भेजें"):
+# ईमेल भेजने का कलरफुल बटन
+if st.button("🚀 रंगीन अंदाज़ में ईमेल भेजें"):
     if not sender_email or not sender_password or not receiver_email:
         st.warning("⚠️ कृपया अपनी ईमेल आईडी, पासवर्ड और प्राप्तकर्ता का ईमेल भरें!")
     else:
-        with st.spinner("ईमेल भेजा जा रहा है, कृपया प्रतीक्षा करें..."):
+        with st.spinner("रॉकेट की गति से ईमेल भेजा जा रहा है... 🚀"):
             try:
                 # ईमेल तैयार करना
                 msg = MIMEMultipart()
@@ -101,6 +103,7 @@ if st.button("🚀 अब ईमेल भेजें"):
                 server.send_message(msg)
                 server.quit()
                 
-                st.success("🎉 सफलतापूर्वक ईमेल भेज दिया गया है!")
+                st.balloons()
+                st.success("🎉 सफलतापूर्वक और शानदार तरीके से ईमेल भेज दिया गया है!")
             except Exception as e:
                 st.error(f"❌ ईमेल भेजने में विफल: {e}")
