@@ -2,7 +2,6 @@ import streamlit as st
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import pandas as pd
 
 # पेज की सेटिंग
 st.set_page_config(page_title="Pro Email Automation Suite", page_icon="⚡", layout="wide")
@@ -57,7 +56,7 @@ st.markdown("""
 
 # साइडबार नेविगेशन
 st.sidebar.markdown("### 🧭 नेविगेशन मेनू")
-app_mode = st.sidebar.radio("मोड चुनें:", ["📤 सिंगल ईमेल (Single Email)", "📂 बल्क डेटा लिस्ट (CSV Bulk Mail)"])
+app_mode = st.sidebar.radio("मोड चुनें:", ["📤 सिंगल ईमेल (Single Email)", "🚀 बल्क डायरेक्ट मेल (Bulk Direct Mail)"])
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🔐 अकाउंट क्रेडेंशियल्स")
@@ -128,88 +127,82 @@ if app_mode == "📤 सिंगल ईमेल (Single Email)":
                     st.error(f"❌ त्रुटि: {e}")
 
 # -------------------------------------------------------------------------
-# मोड 2: CSV फाइल / डेटा लिस्ट वाला पेज
+# मोड 2: बल्क डायरेक्ट मेल (बिना CSV के, सीधे बॉक्स में ईमेल पेस्ट करें)
 # -------------------------------------------------------------------------
-elif app_mode == "📂 बल्क डेटा लिस्ट (CSV Bulk Mail)":
-    st.markdown("<h1 class='main-title'>📂 बल्क ईमेल ऑटोमेशन (CSV List)</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #475569; font-size: 16px;'>CSV फाइल अपलोड करें और एक साथ सैकड़ों लोगों को मेल भेजें।</p>", unsafe_allow_html=True)
+elif app_mode == "🚀 बल्क डायरेक्ट मेल (Bulk Direct Mail)":
+    st.markdown("<h1 class='main-title'>🚀 बल्क डायरेक्ट ईमेल ऑटोमेशन</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #475569; font-size: 16px;'>बिना किसी फाइल के, सीधे नीचे बॉक्स में कई ईमेल आईडी पेस्ट करें और एक साथ भेजें।</p>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
     
     col1, col2 = st.columns([1, 1], gap="large")
     
     with col1:
         st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
-        st.markdown("### 📁 CSV फाइल अपलोड करें")
-        st.info("आपकी CSV फाइल में कम से कम **'Email'** नाम का कॉलम होना ज़रूरी है। (वैकल्पिक: 'Name' कॉलम)")
-        uploaded_file = st.file_uploader("अपनी CSV फाइल चुनें", type=["csv"])
-        
-        if uploaded_file is not None:
-            df = pd.read_csv(uploaded_file)
-            st.success(f"फ़ाइल लोड हो गई! कुल रिकॉर्ड: {len(df)}")
-            st.dataframe(df.head(3))
+        st.markdown("### 📋 ईमेल आईडी लिस्ट (एक लाइन में एक)")
+        bulk_emails_input = st.text_area(
+            "यहाँ ईमेल आईडी लिखें या पेस्ट करें:",
+            placeholder="example1@gmail.com\nexample2@gmail.com\nexample3@gmail.com",
+            height=180
+        )
+        bulk_subject = st.text_input("📌 Subject Line (विषय)", value="✨ आपके लिए विशेष व्यावसायिक अपडेट")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col2:
         st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
-        st.markdown("### ✍️ बल्क ईमेल टेम्पलेट और सब्जेक्ट")
-        bulk_subject = st.text_input("📌 Subject Line (विषय)", value="✨ आपके लिए विशेष व्यावसायिक अपडेट")
-        
-        bulk_template = """नमस्ते {name},
+        st.markdown("### ✍️ बल्क ईमेल टेम्पलेट और संदेश")
+        bulk_template = """नमस्ते,
 
 यह आपके लिए एक स्वचालित (Automated) बल्क ईमेल है। 
 आप यहाँ अपना मैसेज कस्टमाइज़ कर सकते हैं।
 
 शुभकामनाएं,
 {sender}"""
-        bulk_body = st.text_area("संदेश टेम्पलेट", value=bulk_template, height=140)
+        bulk_body = st.text_area("संदेश टेम्पलेट", value=bulk_template, height=185)
         st.markdown("</div>", unsafe_allow_html=True)
         
     st.markdown("<br>", unsafe_allow_html=True)
     col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
     with col_b2:
-        send_bulk = st.button("🚀 सभी को बल्क ईमेल भेजें")
+        send_bulk = st.button("🚀 सभी को एक साथ मेल भेजें")
         
     if send_bulk:
         if not gmail_id or not app_password or not sender_name:
             st.warning("⚠️ कृपया साइडबार में अपनी Gmail ID और App Password भरें!")
-        elif uploaded_file is None:
-            st.warning("⚠️ कृपया पहले अपनी CSV फाइल अपलोड करें!")
+        elif not bulk_emails_input.strip():
+            st.warning("⚠️ कृपया कम से कम एक ईमेल आईडी बॉक्स में दर्ज करें!")
         else:
-            if 'Email' not in df.columns:
-                st.error("❌ आपकी CSV फाइल में 'Email' नाम का कॉलम नहीं मिला!")
-            else:
-                with st.spinner("रॉकेट की गति से बल्क ईमेल भेजे जा रहे हैं... 🚀"):
-                    try:
-                        server = smtplib.SMTP('smtp.gmail.com', 587)
-                        server.starttls()
-                        server.login(gmail_id, app_password)
+            # ईमेल को लाइनों के हिसाब से अलग करना
+            emails_list = [email.strip() for email in bulk_emails_input.split('\n') if email.strip()]
+            
+            with st.spinner(f"रॉकेट की गति से कुल {len(emails_list)} ईमेल भेजे जा रहे हैं... 🚀"):
+                try:
+                    server = smtplib.SMTP('smtp.gmail.com', 587)
+                    server.starttls()
+                    server.login(gmail_id, app_password)
+                    
+                    success_count = 0
+                    for rcv_email in emails_list:
+                        personalized_body = bulk_body.replace("{sender}", sender_name)
                         
-                        success_count = 0
-                        for index, row in df.iterrows():
-                            rcv_email = row['Email']
-                            rcv_name = row.get('Name', 'Valued Customer')
-                            
-                            personalized_body = bulk_body.replace("{name}", str(rcv_name)).replace("{sender}", sender_name)
-                            
-                            msg = MIMEMultipart()
-                            msg['From'] = f"{sender_name} <{gmail_id}>"
-                            msg['To'] = rcv_email
-                            msg['Subject'] = bulk_subject
-                            msg.attach(MIMEText(personalized_body, 'plain'))
-                            
-                            server.sendmail(gmail_id, rcv_email, msg.as_string())
-                            success_count += 1
-                            
-                        server.quit()
-                        st.balloons()
-                        st.success(f"🎉 कमाल हो गया! डेटा लिस्ट से कुल {success_count} ईमेल सफलताપूर्वक भेज दिए गए हैं!")
-                    except Exception as e:
-                        st.error(f"❌ त्रुटि: {e}")
+                        msg = MIMEMultipart()
+                        msg['From'] = f"{sender_name} <{gmail_id}>"
+                        msg['To'] = rcv_email
+                        msg['Subject'] = bulk_subject
+                        msg.attach(MIMEText(personalized_body, 'plain'))
+                        
+                        server.sendmail(gmail_id, rcv_email, msg.as_string())
+                        success_count += 1
+                        
+                    server.quit()
+                    st.balloons()
+                    st.success(f"🎉 कमाल हो गया! कुल **{success_count}** लोगों को सफलतापूर्वक ईमेल भेज दिए गए हैं!")
+                except Exception as e:
+                    st.error(f"❌ त्रुटि: {e}")
 
 # नीचे मददगार गाइड
 st.markdown("---")
-with st.expander("📌 **गाइड और जानकारी (App Password & CSV Format)**"):
+with st.expander("📌 **टूल इस्तेमाल करने की गाइड**"):
     st.markdown("""
+    - **बल्क डायरेक्ट मेल मोड:** इसमें आपको कोई CSV फाइल अपलोड करने की ज़रूरत नहीं है। बस बाईं तरफ के बड़े बॉक्स में अपनी ईमेल लिस्ट (हर लाइन में एक ईमेल) कॉपी-पेस्ट कर दें।
     - **App Password:** जीमेल का सामान्य पासवर्ड काम नहीं करता। Google Account सुरक्षा सेटिंग्स से 'App Passwords' जनरेट करके 16 अंकों का कोड साइडबार में डालें।
-    - **CSV Format:** एक्सेल या नोटपैड में फाइल बनाएं जिसमें पहली लाइन में **`Email`** और **`Name`** लिखा हो, फिर उसे `.csv` के रूप में सेव करें।
     """)
