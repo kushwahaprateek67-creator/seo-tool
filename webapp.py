@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 # पेज सेटिंग
 st.set_page_config(page_title="Bulk Email Tool", layout="wide")
 
-# ब्लैक बैकग्राउंड और ब्लू बॉक्सेस/टेक्स्ट के लिए CSS
+# ब्लैक बैकग्राउंड और एक बड़े ब्लू बॉक्स/टेक्स्ट के लिए CSS
 st.markdown("""
     <style>
     /* पूरे ऐप का बैकग्राउंड ब्लैक */
@@ -14,12 +14,12 @@ st.markdown("""
         background-color: #000000 !important; 
     }
     
-    /* बॉक्स का डिज़ाइन (Dark Blue Box with Neon Blue Shadow/Border) */
+    /* मुख्य बड़े बॉक्स का डिज़ाइन (Dark Blue Box with Neon Blue Shadow/Border) */
     [data-testid="stVerticalBlockBorderWrapper"] {
         background-color: #001122 !important; /* गहरा नीला बैकग्राउंड */
-        padding: 15px;
-        border-radius: 12px;
-        box-shadow: 0px 4px 15px rgba(0, 162, 255, 0.3); /* ब्लू शैडो */
+        padding: 25px; /* अंदर की जगह बढ़ा दी है ताकि सब कुछ साफ़ दिखे */
+        border-radius: 15px;
+        box-shadow: 0px 4px 20px rgba(0, 162, 255, 0.4); /* ब्लू शैडो */
         border: 2px solid #0066ff !important; /* ब्लू बॉर्डर */
     }
     
@@ -59,20 +59,20 @@ st.markdown("""
 st.title("✉️ Bulk Email Tool")
 st.markdown("---")
 
-# लेआउट को दो भागों (कॉलम) में बाँटना
-col1, col2 = st.columns(2, gap="large")
+# सब कुछ एक बड़े बॉक्स के अंदर कर दिया गया है
+with st.container(border=True):
+    # बड़े बॉक्स के अंदर लेआउट को दो भागों (कॉलम) में बाँटना
+    col1, col2 = st.columns(2, gap="large")
 
-# पहला बॉक्स - अकाउंट की जानकारी
-with col1:
-    with st.container(border=True):  
+    # पहला कॉलम - अकाउंट की जानकारी
+    with col1:
         st.subheader("1. अकाउंट डिटेल्स")
         sender_name = st.text_input("Sender Name", placeholder="अपना नाम लिखें")
         gmail_id = st.text_input("Gmail ID", placeholder="your-email@gmail.com")
         app_password = st.text_input("App Password", type="password", placeholder="16 अंकों का पासवर्ड")
 
-# दूसरा बॉक्स - ईमेल मैसेज और डेटा
-with col2:
-    with st.container(border=True):  
+    # दूसरा कॉलम - ईमेल मैसेज और डेटा
+    with col2:
         st.subheader("2. संदेश और डेटा")
         subject_line = st.text_input("Subject Line", placeholder="ईमेल का विषय")
         email_template = st.text_area("Email Template", height=110, placeholder="अपना मैसेज यहाँ लिखें...")
