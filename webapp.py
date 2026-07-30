@@ -3,10 +3,10 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-# पेज की सेटिंग
+# पेज की सेटिंग (Wide Mode)
 st.set_page_config(page_title="Bulk Email Automation Tool", page_icon="⚡", layout="wide")
 
-# शानदार बैकग्राउंड और स्टाइल के लिए CSS
+# शानदार बैकग्राउंड और मॉडर्न कार्ड स्टाइल के लिए CSS
 st.markdown("""
     <style>
     .stApp {
@@ -26,8 +26,8 @@ st.markdown("""
         color: white;
         font-weight: bold;
         border-radius: 12px;
-        height: 52px;
-        font-size: 17px;
+        height: 55px;
+        font-size: 18px;
         border: none;
         box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
         transition: 0.3s;
@@ -54,36 +54,45 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# साइडबार में क्रेडेंशियल्स
-st.sidebar.markdown("### 🔐 अकाउंट क्रेडेंशियल्स")
-sender_name = st.sidebar.text_input("👤 Sender Name", placeholder="प्रतीक कुशवाहा")
-gmail_id = st.sidebar.text_input("📧 Gmail ID", placeholder="your-email@gmail.com")
-app_password = st.sidebar.text_input("🔑 App Password", type="password", placeholder="16 अंकों का पासवर्ड")
-
-st.sidebar.markdown("---")
-st.sidebar.info("💡 यह टूल केवल बल्क डायरेक्ट मेल भेजने के लिए डिज़ाइन किया गया है।")
-
-# मुख्य पृष्ठ - बल्क डायरेक्ट मेल
-st.markdown("<h1 class='main-title'>🚀 बल्क डायरेक्ट ईमेल ऑटोमेशन</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #475569; font-size: 16px;'>नीचे दिए गए बॉक्स में एक के नीचे एक कई ईमेल आईडी पेस्ट करें और एक साथ सभी को मेल भेजें।</p>", unsafe_allow_html=True)
+# मुख्य शीर्षक
+st.markdown("<h1 class='main-title'>⚡ स्मार्ट बल्क ईमेल ऑटोमेशन सूट</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #475569; font-size: 16px;'>सारी जानकारी एक ही पेज पर भरें और एक क्लिक में सबको मेल भेजें!</p>", unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
-col1, col2 = st.columns([1, 1], gap="large")
+# -------------------------------------------------------------------------
+# सेक्शन 1: अकाउंट क्रेडेंशियल्स (सबसे ऊपर एक ही लाइन में 3 बॉक्स)
+# -------------------------------------------------------------------------
+st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
+st.markdown("### 🔐 1. अकाउंट और सेंडर जानकारी")
+c1, c2, c3 = st.columns(3, gap="medium")
 
-with col1:
+with c1:
+    sender_name = st.text_input("👤 Sender Name (आपका नाम)", placeholder="प्रतीक कुशवाहा")
+with c2:
+    gmail_id = st.text_input("📧 Gmail ID (आपकी जीमेल)", placeholder="your-email@gmail.com")
+with c3:
+    app_password = st.text_input("🔑 App Password (16 अंकों का पासवर्ड)", type="password", placeholder="पासवर्ड यहाँ डालें")
+st.markdown("</div>", unsafe_allow_html=True)
+
+# -------------------------------------------------------------------------
+# सेक्शन 2: ईमेल लिस्ट और मैसेज टेम्पलेट (आमने-सामने दो बड़े बॉक्स)
+# -------------------------------------------------------------------------
+col_left, col_right = st.columns(2, gap="large")
+
+with col_left:
     st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
-    st.markdown("### 📋 ईमेल आईडी लिस्ट (एक लाइन में एक)")
+    st.markdown("### 📋 2. ईमेल आईडी लिस्ट (एक लाइन में एक)")
     bulk_emails_input = st.text_area(
-        "यहाँ ईमेल आईडी लिखें या पेस्ट करें:",
+        "यहाँ अपनी सभी ईमेल आईडी पेस्ट करें:",
         placeholder="example1@gmail.com\nexample2@gmail.com\nexample3@gmail.com",
         height=180
     )
     bulk_subject = st.text_input("📌 Subject Line (विषय)", value="✨ आपके लिए विशेष व्यावसायिक अपडेट")
     st.markdown("</div>", unsafe_allow_html=True)
     
-with col2:
+with col_right:
     st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
-    st.markdown("### ✍️ ईमेल टेम्पलेट और संदेश")
+    st.markdown("### ✍️ 3. ईमेल टेम्पलेट और संदेश")
     bulk_template = """नमस्ते,
 
 यह आपके लिए एक स्वचालित (Automated) बल्क ईमेल है। 
@@ -91,19 +100,23 @@ with col2:
 
 शुभकामनाएं,
 {sender}"""
-    bulk_body = st.text_area("संदेश टेम्पलेट", value=bulk_template, height=185)
+    bulk_body = st.text_area("संदेश टेम्पलेट (Message Body)", value=bulk_template, height=215)
     st.markdown("</div>", unsafe_allow_html=True)
-    
+
 st.markdown("<br>", unsafe_allow_html=True)
+
+# -------------------------------------------------------------------------
+# सेक्शन 3: सेंड बटन और लॉजिक
+# -------------------------------------------------------------------------
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
     send_bulk = st.button("🚀 सभी को एक साथ मेल भेजें")
-    
+
 if send_bulk:
     if not gmail_id or not app_password or not sender_name:
-        st.warning("⚠️ कृपया साइडबार में अपनी Gmail ID, App Password और Sender Name भरें!")
+        st.warning("⚠️ कृपया ऊपर दिए गए बॉक्स में Sender Name, Gmail ID और App Password भरें!")
     elif not bulk_emails_input.strip():
-        st.warning("⚠️ कृपया कम से कम एक ईमेल आईडी बॉक्स में दर्ज करें!")
+        st.warning("⚠️ कृपया कम से कम एक ईमेल आईडी 'ईमेल आईडी लिस्ट' वाले बॉक्स में दर्ज करें!")
     else:
         # ईमेल को लाइनों के हिसाब से अलग करना
         emails_list = [email.strip() for email in bulk_emails_input.split('\n') if email.strip()]
@@ -137,6 +150,8 @@ if send_bulk:
 st.markdown("---")
 with st.expander("📌 **टूल इस्तेमाल करने की गाइड**"):
     st.markdown("""
-    - **डायरेक्ट मेल मोड:** इसमें आपको किसी भी फाइल की ज़रूरत नहीं है। बस बाईं तरफ के बड़े बॉक्स में अपनी ईमेल लिस्ट (हर लाइन में एक ईमेल) कॉपी-पेस्ट कर दें।
-    - **App Password:** जीमेल का सामान्य पासवर्ड काम नहीं करता। Google Account सुरक्षा सेटिंग्स से 'App Passwords' जनरेट करके 16 अंकों का कोड साइडबार में डालें।
+    1. **अकाउंट जानकारी:** सबसे ऊपर अपने नाम, जीमेल और ऐप पासवर्ड को भरें।
+    2. **ईमेल लिस्ट:** बाईं तरफ के बॉक्स में अपनी ईमेल आईडी एक के नीचे एक (Line by Line) पेस्ट करें।
+    3. **संदेश:** दाईं तरफ के बॉक्स में अपना मैसेज लिखें और नीचे दिए गए बड़े बटन से एक साथ सभी को भेज दें।
+    4. **App Password:** जीमेल का सामान्य पासवर्ड काम नहीं करता। Google Account सेटिंग्स से 'App Passwords' जनरेट करके 16 अंकों का कोड इस्तेमाल करें।
     """)
