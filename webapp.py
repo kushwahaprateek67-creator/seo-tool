@@ -4,40 +4,44 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 # पेज सेटिंग
-st.set_page_config(page_title="Bulk Email Tool", layout="wide")
+st.set_page_config(page_title="Bulk Email Tool", layout="centered")
 
-# ब्लैक बैकग्राउंड और एक बड़े ब्लू बॉक्स/टेक्स्ट के लिए CSS
+# पूरे ऐप को एक "मेन फ्रेम" में फिक्स करने के लिए CSS
 st.markdown("""
     <style>
-    /* पूरे ऐप का बैकग्राउंड ब्लैक */
+    /* 1. स्क्रीन का बाहरी हिस्सा (पूरा ब्लैक) */
     .stApp, .stApp > header {
         background-color: #000000 !important; 
     }
     
-    /* मुख्य बड़े बॉक्स का डिज़ाइन (Dark Blue Box with Neon Blue Shadow/Border) */
-    [data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #001122 !important; /* गहरा नीला बैकग्राउंड */
-        padding: 25px; /* अंदर की जगह बढ़ा दी है ताकि सब कुछ साफ़ दिखे */
-        border-radius: 15px;
-        box-shadow: 0px 4px 20px rgba(0, 162, 255, 0.4); /* ब्लू शैडो */
-        border: 2px solid #0066ff !important; /* ब्लू बॉर्डर */
+    /* 2. आपका मेन फ्रेम (जिसके अंदर सब कुछ रहेगा) */
+    .block-container {
+        background-color: #001122 !important; /* फ्रेम के अंदर डार्क ब्लू */
+        border: 3px solid #00bfff !important; /* चारो तरफ से नियॉन ब्लू बॉर्डर */
+        border-radius: 20px !important; /* गोल किनारे */
+        box-shadow: 0px 0px 30px rgba(0, 191, 255, 0.5) !important; /* चमकती हुई शैडो */
+        padding: 40px 30px !important; /* फ्रेम के अंदर की जगह */
+        margin-top: 40px !important; /* ऊपर से गैप */
+        margin-bottom: 40px !important; /* नीचे से गैप */
+        max-width: 900px !important; /* फ्रेम की चौड़ाई फिक्स कर दी */
     }
     
-    /* सभी नाम (Labels), हेडर्स और टेक्स्ट को ब्लू और डार्क (Bold) करने के लिए */
+    /* 3. टेक्स्ट और हेडर्स का रंग */
     h1, h2, h3, label p, .stMarkdown p {
         font-weight: 800 !important;
-        color: #00bfff !important; /* ब्राइट ब्लू (Cyan) कलर */
+        color: #00bfff !important; 
         font-size: 16px !important;
     }
 
-    /* इनपुट फील्ड्स (टेक्स्ट बॉक्स) का रंग */
+    /* 4. इनपुट बॉक्स का डिज़ाइन */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        background-color: #000000 !important; /* अंदर से ब्लैक */
-        color: #00bfff !important; /* लिखते समय ब्लू रंग का टेक्स्ट */
-        border: 1px solid #0066ff !important; /* ब्लू बॉर्डर */
+        background-color: #000000 !important; 
+        color: #00bfff !important; 
+        border: 1px solid #0066ff !important; 
+        border-radius: 8px !important;
     }
 
-    /* बटन का डिज़ाइन */
+    /* 5. सेंड बटन का डिज़ाइन */
     .stButton>button {
         background-color: #0044cc !important;
         color: white !important;
@@ -45,9 +49,9 @@ st.markdown("""
         font-weight: bold;
         border-radius: 8px;
         transition: 0.3s;
+        height: 50px;
     }
     
-    /* बटन पर माउस ले जाने पर रंग (Hover) */
     .stButton>button:hover {
         background-color: #00bfff !important;
         color: black !important;
@@ -56,31 +60,31 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("✉️ Bulk Email Tool")
-st.markdown("---")
+# ----------------- फ्रेम के अंदर का कंटेंट -----------------
 
-# सब कुछ एक बड़े बॉक्स के अंदर कर दिया गया है
-with st.container(border=True):
-    # बड़े बॉक्स के अंदर लेआउट को दो भागों (कॉलम) में बाँटना
-    col1, col2 = st.columns(2, gap="large")
+st.markdown("<h1 style='text-align: center;'>✉️ Bulk Email Tool</h1>", unsafe_allow_html=True)
+st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
-    # पहला कॉलम - अकाउंट की जानकारी
-    with col1:
-        st.subheader("1. अकाउंट डिटेल्स")
-        sender_name = st.text_input("Sender Name", placeholder="अपना नाम लिखें")
-        gmail_id = st.text_input("Gmail ID", placeholder="your-email@gmail.com")
-        app_password = st.text_input("App Password", type="password", placeholder="16 अंकों का पासवर्ड")
+# लेआउट को दो भागों में बाँटना (ताकि फॉर्म आमने-सामने रहे)
+col1, col2 = st.columns(2, gap="large")
 
-    # दूसरा कॉलम - ईमेल मैसेज और डेटा
-    with col2:
-        st.subheader("2. संदेश और डेटा")
-        subject_line = st.text_input("Subject Line", placeholder="ईमेल का विषय")
-        email_template = st.text_area("Email Template", height=110, placeholder="अपना मैसेज यहाँ लिखें...")
-        data = st.text_area("Data (Email IDs - हर लाइन में एक)", height=110, placeholder="example1@gmail.com\nexample2@gmail.com")
+# पहला हिस्सा - अकाउंट की जानकारी
+with col1:
+    st.markdown("### 1. अकाउंट डिटेल्स")
+    sender_name = st.text_input("Sender Name", placeholder="अपना नाम लिखें")
+    gmail_id = st.text_input("Gmail ID", placeholder="your-email@gmail.com")
+    app_password = st.text_input("App Password", type="password", placeholder="16 अंकों का पासवर्ड")
+
+# दूसरा हिस्सा - ईमेल मैसेज और डेटा
+with col2:
+    st.markdown("### 2. संदेश और डेटा")
+    subject_line = st.text_input("Subject Line", placeholder="ईमेल का विषय")
+    email_template = st.text_area("Email Template", height=110, placeholder="अपना मैसेज यहाँ लिखें...")
+    data = st.text_area("Data (Email IDs - हर लाइन में एक)", height=110, placeholder="example1@gmail.com\nexample2@gmail.com")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# सेंड बटन सेंटर में
+# सेंड बटन को बीच में करने के लिए
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
     send_button = st.button("🚀 Send Mail", use_container_width=True)
@@ -88,7 +92,7 @@ with col_b2:
 # ईमेल भेजने का लॉजिक
 if send_button:
     if not sender_name or not gmail_id or not app_password or not data:
-        st.error("⚠️ कृपया सभी बॉक्स की ज़रूरी जानकारी (Sender Name, Gmail ID, Password और Data) भरें!")
+        st.error("⚠️ कृपया सभी ज़रूरी जानकारी (Sender Name, Gmail ID, Password और Data) भरें!")
     else:
         emails_list = [email.strip() for email in data.split('\n') if email.strip()]
         
@@ -113,10 +117,7 @@ if send_button:
                     
                 server.quit()
                 
-                # सफलतापूर्वक मेल जाने पर एनिमेशन
                 st.balloons() 
-                
-                # सक्सेस का ऑप्शन
                 st.success(f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक भेज दिए गए!")
             except Exception as e:
                 st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
