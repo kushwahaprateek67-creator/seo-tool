@@ -4,9 +4,9 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 # पेज की सेटिंग (Wide Mode)
-st.set_page_config(page_title="Bulk Email Automation Tool", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="Professional Bulk Email Tool", page_icon="⚡", layout="wide")
 
-# शानदार बैकग्राउंड और मॉडर्न कार्ड स्टाइल के लिए CSS
+# शानदार बैकग्राउंड, शैडो और मॉडर्न कार्ड स्टाइल के लिए Custom CSS
 st.markdown("""
     <style>
     .stApp {
@@ -60,7 +60,7 @@ st.markdown("<p style='text-align: center; color: #475569; font-size: 16px;'>स
 st.markdown("<br>", unsafe_allow_html=True)
 
 # -------------------------------------------------------------------------
-# सेक्शन 1: अकाउंट क्रेडेंशियल्स (सबसे ऊपर एक ही लाइन में 3 बॉक्स)
+# सेक्शन 1: अकाउंट और सेंडर जानकारी (सबसे ऊपर एक ही लाइन में 3 बॉक्स)
 # -------------------------------------------------------------------------
 st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
 st.markdown("### 🔐 1. अकाउंट और सेंडर जानकारी")
@@ -106,7 +106,7 @@ with col_right:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # -------------------------------------------------------------------------
-# सेक्शन 3: सेंड बटन और लॉजिक
+# सेक्शन 3: सेंड बटन और एनिमेशन लॉजिक
 # -------------------------------------------------------------------------
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
