@@ -2,12 +2,16 @@ import streamlit as st
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-# Password System
-user_password = st.text_input("Tool open karne ke liye password dalein:", type="password")
+# Password System (Jo sahi password dalne par gayab ho jayega)
+login_box = st.empty()
+
+user_password = login_box.text_input("Tool open karne ke liye password dalein:", type="password")
 
 if user_password != st.secrets["my_password"]:
-    st.warning("tool password")
-    st.stop() # Jab tak password sahi nahi hoga, niche ka tool load nahi hoga
+    st.warning("Kripya sahi password enter karein.")
+    st.stop()
+else:
+    login_box.empty() # Password sahi hone par dabbe ko screen se hata dega
 
 # पेज सेटिंग
 st.set_page_config(page_title="Bulk Email Tool", layout="centered")
