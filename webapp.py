@@ -5,8 +5,8 @@ from email.mime.multipart import MIMEMultipart
 # Password System
 user_password = st.text_input("Tool open karne ke liye password dalein:", type="password")
 
-if user_password != st.secrets["prateek"]:
-    st.warning("prateek")
+if user_password != st.secrets["Prateek@2026"]:
+    st.warning("Prateek@2026")
     st.stop() # Jab tak password sahi nahi hoga, niche ka tool load nahi hoga
 
 # पेज सेटिंग
