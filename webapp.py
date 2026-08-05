@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 user_password = st.text_input("Tool open karne ke liye password dalein:", type="password")
 
 if user_password != st.secrets["prateek"]:
-    st.warning("Kripya sahi password enter karein.")
+    st.warning("prateek")
     st.stop() # Jab tak password sahi nahi hoga, niche ka tool load nahi hoga
 
 # पेज सेटिंग
