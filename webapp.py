@@ -2,6 +2,9 @@ import streamlit as st
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import time      # NAYA: Time delay ke liye
+import random    # NAYA: Random time generate karne ke liye
+
 # Password System (Jo sahi password dalne par gayab ho jayega)
 login_box = st.empty()
 
@@ -33,7 +36,7 @@ st.markdown("""
         padding: 40px 30px !important; /* फ्रेम के अंदर की जगह */
         margin-top: 40px !important; /* ऊपर से गैप */
         margin-bottom: 40px !important; /* नीचे से गैप */
-        max-width: 900px !important; /* फ्रेम की चौड़ाई फिक्स कर दी */
+        max-width: 900px !important; /* फ्रेम की चौड़ाई फिक्स कर दी */
     }
     
     /* 3. टेक्स्ट और हेडर्स का रंग */
@@ -43,7 +46,7 @@ st.markdown("""
         font-size: 16px !important;
     }
 
-    /* 4. इनपुट बॉक्स का डिज़ाइन */
+    /* 4. इनपुट बॉक्स का डिज़ाइन */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
         background-color: #000000 !important; 
         color: #00bfff !important; 
@@ -51,7 +54,7 @@ st.markdown("""
         border-radius: 8px !important;
     }
 
-    /* 5. सेंड बटन का डिज़ाइन */
+    /* 5. सेंड बटन का डिज़ाइन */
     .stButton>button {
         background-color: #0044cc !important;
         color: white !important;
@@ -105,15 +108,21 @@ if send_button:
         st.error("⚠️ कृपया सभी ज़रूरी जानकारी (Sender Name, Gmail ID, Password और Data) भरें!")
     else:
         emails_list = [email.strip() for email in data.split('\n') if email.strip()]
+        total_emails = len(emails_list)
         
-        with st.spinner("ईमेल भेजे जा रहे हैं, कृपया प्रतीक्षा करें..."):
+        with st.spinner("ईमेल सर्वर से कनेक्ट हो रहा है..."):
             try:
                 server = smtplib.SMTP('smtp.gmail.com', 587)
                 server.starttls()
                 server.login(gmail_id, app_password)
                 
                 success_count = 0
-                for rcv_email in emails_list:
+                
+                # NAYA: Progress bar aur status message set karna
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                
+                for index, rcv_email in enumerate(emails_list):
                     personalized_body = email_template.replace("{sender}", sender_name)
                     
                     msg = MIMEMultipart()
@@ -122,12 +131,35 @@ if send_button:
                     msg['Subject'] = subject_line
                     msg.attach(MIMEText(personalized_body, 'plain'))
                     
+                    # Email bhejna
                     server.sendmail(gmail_id, rcv_email, msg.as_string())
                     success_count += 1
                     
+                    # NAYA: Progress update karna
+                    progress = (index + 1) / total_emails
+                    progress_bar.progress(progress)
+                    
+                    # NAYA: Delay logic (Aakhri email ke baad wait nahi karna hai)
+                    if index < total_emails - 1:
+                        # 25 se 45 seconds ke beech koi bhi random number lega
+                        delay_seconds = random.randint(25, 45) 
+                        
+                        # NAYA: Screen par countdown jaisa dikhana
+                        for remaining in range(delay_seconds, 0, -1):
+                            status_text.info(f"✅ {rcv_email} को भेज दिया। स्पैम से बचने के लिए अगले ईमेल में {remaining} सेकंड का इंतज़ार...")
+                            time.sleep(1)
+                    else:
+                        status_text.success(f"✅ {rcv_email} को भेज दिया। सभी ईमेल पूरे हुए!")
+                        
                 server.quit()
                 
+                # Kaam pura hone par progress bar hata dena aur final success dikhana
+                time.sleep(1)
+                status_text.empty()
+                progress_bar.empty()
+                
                 st.balloons() 
-                st.success(f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक भेज दिए गए!")
+                st.success(f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक (एंटी-स्पैम डिले के साथ) भेज दिए गए!")
+                
             except Exception as e:
                 st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
