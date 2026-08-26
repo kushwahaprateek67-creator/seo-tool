@@ -2,22 +2,31 @@ import streamlit as st
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import time      # NAYA: Time delay ke liye
-import random    # NAYA: Random time generate karne ke liye
+import time      # Time delay ke liye
+import random    # Random time generate karne ke liye
 
-# Password System (Jo sahi password dalne par gayab ho jayega)
-login_box = st.empty()
-
-user_password = login_box.text_input("Tool open karne ke liye password dalein:", type="password")
-
-if user_password != st.secrets["my_password"]:
-    st.warning("Kripya sahi password enter karein.")
-    st.stop()
-else:
-    login_box.empty() # Password sahi hone par dabbe ko screen se hata dega
-
-# पेज सेटिंग
+# --- PAGE SETTING (Isko sabse upar rakhna zaroori hai) ---
 st.set_page_config(page_title="Bulk Email Tool", layout="centered")
+
+# --- NAYA PASSWORD SYSTEM (Session State ke sath) ---
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+
+# Agar login nahi hai, toh password poochega
+if not st.session_state["logged_in"]:
+    # Password box screen par dikhayen
+    user_password = st.text_input("Tool open karne ke liye password dalein:", type="password")
+    
+    if user_password:
+        if user_password == st.secrets["my_password"]:
+            st.session_state["logged_in"] = True
+            st.rerun() # Sahi password daalte hi page refresh hoke tool khul jayega
+        else:
+            st.warning("Kripya sahi password enter karein.")
+            
+    st.stop() # Jab tak login nahi होता, नीचे का कोई कोड रन नहीं होगा
+# ----------------------------------------------------
+
 
 # पूरे ऐप को एक "मेन फ्रेम" में फिक्स करने के लिए CSS
 st.markdown("""
@@ -118,7 +127,7 @@ if send_button:
                 
                 success_count = 0
                 
-                # NAYA: Progress bar aur status message set karna
+                # Progress bar aur status message set karna
                 progress_bar = st.progress(0)
                 status_text = st.empty()
                 
@@ -135,16 +144,16 @@ if send_button:
                     server.sendmail(gmail_id, rcv_email, msg.as_string())
                     success_count += 1
                     
-                    # NAYA: Progress update karna
+                    # Progress update karna
                     progress = (index + 1) / total_emails
                     progress_bar.progress(progress)
                     
-                    # NAYA: Delay logic (Aakhri email ke baad wait nahi karna hai)
+                    # Delay logic (Aakhri email ke baad wait nahi karna hai)
                     if index < total_emails - 1:
                         # 12 se 16 seconds ke beech koi bhi random number lega
                         delay_seconds = random.randint(12, 16)
                         
-                        # NAYA: Screen par countdown jaisa dikhana
+                        # Screen par countdown jaisa dikhana
                         for remaining in range(delay_seconds, 0, -1):
                             status_text.info(f"✅ {rcv_email} को भेज दिया। स्पैम से बचने के लिए अगले ईमेल में {remaining} सेकंड का इंतज़ार...")
                             time.sleep(1)
