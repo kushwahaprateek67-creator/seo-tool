@@ -150,8 +150,8 @@ if send_button:
                     
                     # Delay logic (Aakhri email ke baad wait nahi karna hai)
                     if index < total_emails - 1:
-                        # 12 se 16 seconds ke beech koi bhi random number lega
-                        delay_seconds = random.randint(12, 16)
+                        # 10 se 12 seconds ke beech koi bhi random number lega
+                        delay_seconds = random.randint(10, 12)
                         
                         # Screen par countdown jaisa dikhana
                         for remaining in range(delay_seconds, 0, -1):
