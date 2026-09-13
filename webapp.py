@@ -26,7 +26,6 @@ st.markdown("""
 
 st.title("✉️ Bulk Email Outreach Tool")
 
-# सिंगल-फ्रेम UI कंटेनर
 with st.form("email_form"):
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     
@@ -44,71 +43,92 @@ with st.form("email_form"):
     
     st.markdown("---")
     
-    # CSV अपलोड
-    st.subheader("Upload Contacts")
-    uploaded_file = st.file_uploader("Upload CSV (Max 100 Contacts)", type=["csv"])
+    # ईमेल डालने का तरीका (मैनुअल या शीट)
+    st.subheader("Add Contacts")
+    input_method = st.radio("How do you want to add emails?", ["Enter Manually", "Upload CSV Sheet"])
+    
+    manual_emails = ""
+    uploaded_file = None
+    
+    if input_method == "Enter Manually":
+        manual_emails = st.text_area("Enter Email IDs (separated by comma)", placeholder="test1@gmail.com, test2@yahoo.com")
+    else:
+        uploaded_file = st.file_uploader("Upload CSV (Max 100 Contacts)", type=["csv"])
     
     submit_button = st.form_submit_button("Start Sending Campaign")
     st.markdown('</div>', unsafe_allow_html=True)
 
 # सेंडिंग लॉजिक
 if submit_button:
-    if not sender_email or not app_password or not subject or not body or not uploaded_file:
-        st.error("⚠️ Please fill in all the details and upload your CSV file.")
+    if not sender_email or not app_password or not subject or not body:
+        st.error("⚠️ Please fill in all Sender and Content details.")
     else:
-        try:
-            # CSV रीड करना
-            df = pd.read_csv(uploaded_file)
-            
-            if 'Email' not in df.columns:
-                st.error("⚠️ CSV file must contain a column named 'Email'.")
+        email_list = []
+        
+        # ईमेल लिस्ट तैयार करना
+        if input_method == "Enter Manually":
+            if manual_emails.strip():
+                # कॉमा (,) से अलग करके लिस्ट बनाना
+                raw_emails = manual_emails.split(",")
+                email_list = [email.strip() for email in raw_emails if email.strip()]
             else:
-                email_list = df['Email'].dropna().tolist()[:100]
-                total_emails = len(email_list)
+                st.error("⚠️ Please enter at least one email address manually.")
+        else:
+            if uploaded_file is not None:
+                try:
+                    df = pd.read_csv(uploaded_file)
+                    if 'Email' in df.columns:
+                        email_list = df['Email'].dropna().tolist()
+                    else:
+                        st.error("⚠️ CSV file must contain a column named 'Email'.")
+                except Exception as e:
+                    st.error(f"Error reading CSV: {e}")
+            else:
+                st.error("⚠️ Please upload a CSV file.")
+        
+        # अगर ईमेल लिस्ट में डेटा है, तो सेंडिंग शुरू करें
+        if email_list:
+            email_list = email_list[:100] # अधिकतम 100 की लिमिट
+            total_emails = len(email_list)
+            
+            st.info(f"🚀 Starting campaign for {total_emails} contacts...")
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            try:
+                # SMTP कनेक्शन
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(sender_email, app_password)
                 
-                if total_emails == 0:
-                    st.warning("No valid emails found in the CSV.")
-                else:
-                    st.info(f"🚀 Starting campaign for {total_emails} contacts...")
-                    progress_bar = st.progress(0)
-                    status_text = st.empty()
-                    
-                    # SMTP सर्वर से कनेक्ट करना
-                    server = smtplib.SMTP('smtp.gmail.com', 587)
-                    server.starttls()
-                    server.login(sender_email, app_password)
-                    
-                    for i, receiver_email in enumerate(email_list):
-                        try:
-                            # ईमेल तैयार करना
-                            msg = MIMEMultipart()
-                            msg['From'] = sender_email
-                            msg['To'] = receiver_email
-                            msg['Subject'] = subject
-                            msg.attach(MIMEText(body, 'plain'))
+                for i, receiver_email in enumerate(email_list):
+                    try:
+                        msg = MIMEMultipart()
+                        msg['From'] = sender_email
+                        msg['To'] = receiver_email
+                        msg['Subject'] = subject
+                        msg.attach(MIMEText(body, 'plain'))
+                        
+                        server.send_message(msg)
+                        
+                        progress_bar.progress((i + 1) / total_emails)
+                        status_text.success(f"✅ Sent to: {receiver_email} ({i+1}/{total_emails})")
+                        
+                        # 6-16 सेकंड का डिले
+                        if i < total_emails - 1:
+                            delay = random.randint(6, 16)
+                            status_text.info(f"⏳ Waiting {delay} seconds...")
+                            time.sleep(delay)
                             
-                            # ईमेल भेजना
-                            server.send_message(msg)
-                            
-                            # प्रोग्रेस अपडेट
-                            progress_bar.progress((i + 1) / total_emails)
-                            status_text.success(f"✅ Sent to: {receiver_email} ({i+1}/{total_emails})")
-                            
-                            # स्पैम से बचने के लिए 6 से 16 सेकंड का रैंडम डिले
-                            if i < total_emails - 1:
-                                delay = random.randint(6, 16)
-                                status_text.info(f"⏳ Waiting {delay} seconds before next email...")
-                                time.sleep(delay)
-                                
-                        except Exception as e:
-                            st.error(f"❌ Failed to send to {receiver_email}: {e}")
-                            continue # एरर आने पर न रुके, अगले ईमेल पर जाए
-                    
-                    server.quit()
-                    status_text.success("🎉 Campaign Completed Successfully!")
-                    st.balloons()
-                    
-        except smtplib.SMTPAuthenticationError:
-            st.error("❌ SMTP Login Failed. Please double-check your Email and App Password.")
-        except Exception as e:
-            st.error(f"❌ An unexpected error occurred: {e}")
+                    except Exception as e:
+                        st.error(f"❌ Failed to send to {receiver_email}: {e}")
+                        continue
+                
+                server.quit()
+                status_text.success("🎉 Campaign Completed Successfully!")
+                st.balloons()
+                
+            except smtplib.SMTPAuthenticationError:
+                st.error("❌ SMTP Login Failed. Check your App Password.")
+            except Exception as e:
+                st.error(f"❌ Error: {e}")
