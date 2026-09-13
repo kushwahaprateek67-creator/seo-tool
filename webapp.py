@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import smtplib
 import time
-import random
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -76,8 +75,8 @@ st.title("⚡ PHANTOM_SEO // OUTREACH_NEXUS")
 
 mode = st.radio("SELECT_EXECUTION_PROTOCOL:", ["✍️ // MULTI_TARGET_MANUAL", "📁 // MASS_INJECTION (CSV Bulk)"])
 
-# --- ईमेल भेजने का मेन इंजन ---
-def execute_campaign(targets, sender, password, sub, msg_body):
+# --- ईमेल भेजने का मेन इंजन (अलग-अलग टाइमिंग के साथ) ---
+def execute_campaign(targets, sender, password, sub, msg_body, delay_time):
     targets = targets[:100] 
     total = len(targets)
     
@@ -109,9 +108,8 @@ def execute_campaign(targets, sender, password, sub, msg_body):
                 status.success(f"✔️ PAYLOAD_DELIVERED: {target_email} [{i+1}/{total}]")
                 
                 if i < total - 1:
-                    delay = random.choice([random.randint(6, 8), random.randint(12, 16)]) 
-                    status.info(f"⏳ STEALTH_MODE: Cooling down for {delay} seconds...")
-                    time.sleep(delay)
+                    status.info(f"⏳ STEALTH_MODE: Cooling down for {delay_time} seconds...")
+                    time.sleep(delay_time)
                     
             except Exception as e:
                 st.error(f"❌ CONNECTION_LOST: {target_email} -> {e}")
@@ -122,13 +120,16 @@ def execute_campaign(targets, sender, password, sub, msg_body):
         st.error(f"❌ AUTH_FAILED: Access Denied. Check App Password. -> {e}")
 
 # ==========================================
-# फ्रेम 1: मैनुअल तरीका (कॉमा या नंबर/लाइन दोनों सपोर्ट करेगा)
+# फ्रेम 1: मैनुअल तरीका (6 सेकंड गैप)
 # ==========================================
 if mode == "✍️ // MULTI_TARGET_MANUAL":
     with st.form("manual_frame"):
         st.markdown("#### [// SYSTEM_AUTHENTICATION //]")
+        
+        # ईमेल, पासवर्ड और नाम का बॉक्स एक साथ ऊपर ही
         sender_email = st.text_input("GMAIL_ID (Operator)")
         app_password = st.text_input("APP_PASSWORD (Secret Key)", type="password")
+        target_name = st.text_input("TARGET_NAME (Applies to all emails below, e.g., 'Webmaster' or 'Admin')")
         
         st.markdown("---")
         st.markdown("#### [// PAYLOAD_CONFIGURATION //]")
@@ -138,9 +139,7 @@ if mode == "✍️ // MULTI_TARGET_MANUAL":
         
         st.markdown("---")
         st.markdown("#### [// TARGET_ACQUISITION //]")
-        target_name = st.text_input("TARGET_NAME (Applies to all emails below, e.g., 'Webmaster' or 'Admin')")
-        
-        manual_emails = st.text_area("TARGET_EMAILS (Enter comma separated OR line-by-line / numbered list)", height=100)
+        manual_emails = st.text_area("TARGET_EMAILS (Comma separated or line-by-line)", height=100)
         
         submit = st.form_submit_button(">> EXECUTE_PROTOCOL <<")
         
@@ -150,35 +149,26 @@ if mode == "✍️ // MULTI_TARGET_MANUAL":
             else:
                 final_name = target_name.strip() if target_name.strip() else "Friend"
                 
-                # यह कोड कॉमा (,) और नई लाइन (\n) दोनों को संभाल लेगा
-                import re
-                # पहले लाइनों में तोड़ें, फिर कॉमा से तोड़ें
                 lines = manual_emails.split("\n")
                 extracted_emails = []
                 for line in lines:
-                    # अगर लाइन में कॉमा है तो उन्हें अलग करें
                     parts = line.split(",")
                     for p in parts:
                         cleaned = p.strip()
-                        # नंबर (जैसे 1., 2.) या फालतू चीजें हटाने के लिए बेसिक ईमेल फ़िल्टर
-                        # '@' होने पर ही ईमेल मानेगा
                         if "@" in cleaned:
                             extracted_emails.append(cleaned)
                 
-                targets = []
-                for email in extracted_emails:
-                    targets.append({"name": final_name, "email": email})
-                
-                # डुप्लीकेट हटाना
+                targets = [{"name": final_name, "email": email} for email in extracted_emails]
                 unique_targets = list({t['email']: t for t in targets}.values())
                 
                 if unique_targets:
-                    execute_campaign(unique_targets, sender_email, app_password, subject, body)
+                    # मैनुअल के लिए 6 सेकंड का डिले पास किया है
+                    execute_campaign(unique_targets, sender_email, app_password, subject, body, delay_time=6)
                 else:
                     st.error("⚠️ FORMAT_ERROR: No valid emails found. Make sure '@' is included.")
 
 # ==========================================
-# फ्रेम 2: CSV तरीका
+# फ्रेम 2: CSV तरीका (15 सेकंड गैप)
 # ==========================================
 elif mode == "📁 // MASS_INJECTION (CSV Bulk)":
     with st.form("csv_frame"):
@@ -210,7 +200,7 @@ elif mode == "📁 // MASS_INJECTION (CSV Bulk)":
                         for index, row in df.iterrows():
                             email_val = str(row['Email']).strip()
                             if 'Name' in df.columns and pd.notna(row['Name']):
-                                name_val = str(row['Name'].strip())
+                                name_val = str(row['Name']).strip()
                             else:
                                 name_val = "Friend"
                                 
@@ -218,7 +208,8 @@ elif mode == "📁 // MASS_INJECTION (CSV Bulk)":
                                 targets.append({"name": name_val, "email": email_val})
                                 
                         if targets:
-                            execute_campaign(targets, sender_email, app_password, subject, body)
+                            # CSV के लिए 15 सेकंड का डिले पास किया है
+                            execute_campaign(targets, sender_email, app_password, subject, body, delay_time=15)
                         else:
                             st.error("⚠️ SYSTEM_ERROR: No valid emails found in database.")
                     else:
