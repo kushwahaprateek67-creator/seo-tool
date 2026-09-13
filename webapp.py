@@ -21,8 +21,29 @@ st.markdown("""
         background-color: #1a1c24;
         margin-bottom: 20px;
     }
+    /* रेडियो बटन को सुंदर बनाने के लिए */
+    div.row-widget.stRadio > div {
+        flex-direction: row;
+        justify-content: center;
+        background-color: #1a1c24;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid #00d2ff;
+    }
     </style>
 """, unsafe_allow_html=True)
+
+st.title("✉️ Bulk Email Outreach Tool")
+
+# ==========================================
+# सबसे ऊपर से तरीका चुनने का ऑप्शन (जैसे पहले था)
+# ==========================================
+mode = st.radio(
+    "👇 सबसे पहले ईमेल भेजने का तरीका चुनें:", 
+    ["✍️ Manual Entry (बॉक्स में टाइप करें)", "📁 Bulk Send (CSV फाइल अपलोड करें)"]
+)
+
+st.markdown("---")
 
 # --- ईमेल भेजने का मुख्य फंक्शन ---
 def send_emails_logic(emails, sender_email, app_password, subject, body):
@@ -51,7 +72,7 @@ def send_emails_logic(emails, sender_email, app_password, subject, body):
                 progress_bar.progress((i + 1) / total_emails)
                 status_text.success(f"✅ Sent to: {receiver_email} ({i+1}/{total_emails})")
 
-                # स्पैम से बचने के लिए डिले
+                # 6-8 या 12-16 सेकंड का डिले
                 if i < total_emails - 1:
                     delay = random.choice([random.randint(6, 8), random.randint(12, 16)]) 
                     status_text.info(f"⏳ Waiting {delay} seconds before next email...")
@@ -72,32 +93,22 @@ def send_emails_logic(emails, sender_email, app_password, subject, body):
 
 
 # ==========================================
-# साइडबार (Navigation) - एकदम अलग करने के लिए
+# तरीका 1: सिर्फ मैनुअल (Old Style)
 # ==========================================
-st.sidebar.title("📌 Menu")
-mode = st.sidebar.radio("तरीका चुनें:", ["✍️ Manual Entry (पुराना तरीका)", "📁 Bulk Send (CSV शीट)"])
-
-
-# ==========================================
-# पेज 1: मैनुअल तरीका (बिल्कुल अलग)
-# ==========================================
-if mode == "✍️ Manual Entry (पुराना तरीका)":
-    st.title("✍️ Send Emails Manually")
+if mode == "✍️ Manual Entry (बॉक्स में टाइप करें)":
+    st.subheader("✍️ Send Emails Manually")
     
     with st.form("manual_form"):
         st.markdown('<div class="main-container">', unsafe_allow_html=True)
         
-        st.subheader("Sender Details")
         sender_email = st.text_input("Your Gmail Address")
         app_password = st.text_input("App Password", type="password")
         
         st.markdown("---")
-        st.subheader("Email Content")
         subject = st.text_input("Email Subject")
         body = st.text_area("Email Message", height=150)
         
         st.markdown("---")
-        st.subheader("Add Contacts")
         manual_emails = st.text_area("Enter Email IDs (separated by comma)", placeholder="test1@gmail.com, test2@yahoo.com")
         
         submit_manual = st.form_submit_button("Send Emails Manually")
@@ -114,25 +125,22 @@ if mode == "✍️ Manual Entry (पुराना तरीका)":
 
 
 # ==========================================
-# पेज 2: CSV तरीका (बिल्कुल अलग)
+# तरीका 2: सिर्फ CSV शीट (बिल्कुल अलग)
 # ==========================================
-elif mode == "📁 Bulk Send (CSV शीट)":
-    st.title("📁 Send Bulk Emails via CSV")
+elif mode == "📁 Bulk Send (CSV फाइल अपलोड करें)":
+    st.subheader("📁 Send Bulk Emails via CSV")
     
     with st.form("csv_form"):
         st.markdown('<div class="main-container">', unsafe_allow_html=True)
         
-        st.subheader("Sender Details")
         sender_email = st.text_input("Your Gmail Address")
         app_password = st.text_input("App Password", type="password")
         
         st.markdown("---")
-        st.subheader("Email Content")
         subject = st.text_input("Email Subject")
         body = st.text_area("Email Message", height=150)
         
         st.markdown("---")
-        st.subheader("Upload Contacts")
         uploaded_file = st.file_uploader("Upload CSV (Max 100 Contacts)", type=["csv"])
         
         submit_csv = st.form_submit_button("Send Bulk Emails")
