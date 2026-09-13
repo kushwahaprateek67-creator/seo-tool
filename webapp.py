@@ -7,7 +7,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 # 🔥 अल्ट्रा-प्रीमियम 'सेक्सी हैकर' UI
-st.set_page_config(page_title="Wild Rank Mailer", layout="centered")
+st.set_page_config(page_title="Phantom SEO Mailer", layout="centered")
 st.markdown("""
     <style>
     .stApp {
@@ -72,9 +72,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("⚡ WILD_RANK_SYSTEM // MAIL_BOT")
+st.title("⚡ PHANTOM_SEO // OUTREACH_NEXUS")
 
-mode = st.radio("SELECT_EXECUTION_PROTOCOL:", ["✍️ // MANUAL_OVERRIDE", "📁 // CSV_BULK_INJECTION"])
+mode = st.radio("SELECT_EXECUTION_PROTOCOL:", ["✍️ // SINGLE_TARGET_MODE (Manual)", "📁 // MASS_INJECTION (CSV Bulk)"])
 
 # --- ईमेल भेजने का मेन इंजन ---
 def execute_campaign(targets, sender, password, sub, msg_body):
@@ -107,7 +107,7 @@ def execute_campaign(targets, sender, password, sub, msg_body):
                 server.send_message(msg)
                 
                 progress.progress((i + 1) / total)
-                status.success(f"✔️ DATA_SENT_TO: {target_name} ({target_email}) [{i+1}/{total}]")
+                status.success(f"✔️ PAYLOAD_DELIVERED: {target_name} ({target_email}) [{i+1}/{total}]")
                 
                 if i < total - 1:
                     delay = random.choice([random.randint(6, 8), random.randint(12, 16)]) 
@@ -123,9 +123,9 @@ def execute_campaign(targets, sender, password, sub, msg_body):
         st.error(f"❌ AUTH_FAILED: Access Denied. Check App Password. -> {e}")
 
 # ==========================================
-# फ्रेम 1: मैनुअल तरीका (अलग-अलग बॉक्स के साथ)
+# फ्रेम 1: मैनुअल तरीका (एक-एक करके भेजने के लिए)
 # ==========================================
-if mode == "✍️ // MANUAL_OVERRIDE":
+if mode == "✍️ // SINGLE_TARGET_MODE (Manual)":
     with st.form("manual_frame"):
         st.markdown("#### [// SYSTEM_AUTHENTICATION //]")
         sender_email = st.text_input("GMAIL_ID (Operator)")
@@ -134,35 +134,34 @@ if mode == "✍️ // MANUAL_OVERRIDE":
         st.markdown("---")
         st.markdown("#### [// PAYLOAD_CONFIGURATION //]")
         subject = st.text_input("MAIL_SUBJECT")
-        st.markdown("*(Hint: Use **[Name]** in the message below. It will be replaced automatically)*")
+        st.markdown("*(Hint: Use **[Name]** in the message box below to auto-insert the name. E.g., 'Hi [Name],')*")
         body = st.text_area("MAIL_BODY (Content)", height=150)
         
         st.markdown("---")
         st.markdown("#### [// TARGET_ACQUISITION //]")
-        
-        # नाम और ईमेल के लिए बिल्कुल अलग-अलग बॉक्स
+        # नाम और ईमेल के अलग-अलग बॉक्स
         col1, col2 = st.columns(2)
         with col1:
             target_name = st.text_input("TARGET_NAME (e.g., Rahul)")
         with col2:
-            target_email = st.text_input("TARGET_EMAIL (e.g., rahul@gmail.com)")
+            target_email = st.text_input("TARGET_EMAIL (e.g., rahul@domain.com)")
         
         submit = st.form_submit_button(">> EXECUTE_PROTOCOL <<")
         
         if submit:
             if not sender_email or not app_password or not subject or not body or not target_email.strip():
-                st.error("⚠️ ERROR: Missing required parameters (Email is mandatory).")
+                st.error("⚠️ ERROR: Missing critical parameters (Email is mandatory).")
             else:
-                # अगर नाम खाली छोड़ दिया है, तो डिफ़ॉल्ट "Friend" ले लेगा
+                # अगर नाम खाली छोड़ा है, तो 'Friend' यूज़ करेगा
                 final_name = target_name.strip() if target_name.strip() else "Friend"
                 targets = [{"name": final_name, "email": target_email.strip()}]
                 
                 execute_campaign(targets, sender_email, app_password, subject, body)
 
 # ==========================================
-# फ्रेम 2: CSV तरीका
+# फ्रेम 2: CSV तरीका (बल्क भेजने के लिए)
 # ==========================================
-elif mode == "📁 // CSV_BULK_INJECTION":
+elif mode == "📁 // MASS_INJECTION (CSV Bulk)":
     with st.form("csv_frame"):
         st.markdown("#### [// SYSTEM_AUTHENTICATION //]")
         sender_email = st.text_input("GMAIL_ID (Operator)")
@@ -171,12 +170,12 @@ elif mode == "📁 // CSV_BULK_INJECTION":
         st.markdown("---")
         st.markdown("#### [// PAYLOAD_CONFIGURATION //]")
         subject = st.text_input("MAIL_SUBJECT")
-        st.markdown("*(Hint: Use **[Name]** in the message below. It will be replaced automatically)*")
+        st.markdown("*(Hint: Use **[Name]** in the message box below to auto-insert the name. E.g., 'Hi [Name],')*")
         body = st.text_area("MAIL_BODY (Content)", height=150)
         
         st.markdown("---")
         st.markdown("#### [// CSV_DATABASE_LINK //]")
-        st.markdown("*(Require 2 Columns in CSV: **Name** and **Email**)*")
+        st.markdown("*(Required Columns in CSV: **Name** and **Email**)*")
         uploaded_file = st.file_uploader("UPLOAD_DATABASE (.csv format)", type=["csv"])
         
         submit = st.form_submit_button(">> EXECUTE_BULK_PROTOCOL <<")
