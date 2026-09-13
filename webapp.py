@@ -21,25 +21,13 @@ st.markdown("""
         background-color: #1a1c24;
         margin-bottom: 20px;
     }
-    div[data-testid="stTabs"] {
-        margin-top: 10px;
-    }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("✉️ Bulk Email Outreach Tool")
-
-# --- ईमेल भेजने का मुख्य फंक्शन (ताकि कोड बार-बार न लिखना पड़े) ---
-def send_emails_list(emails):
-    if not sender_email or not app_password or not subject or not body:
-        st.error("⚠️ Please fill in Sender Details and Email Content first.")
-        return
-    
+# --- ईमेल भेजने का मुख्य फंक्शन ---
+def send_emails_logic(emails, sender_email, app_password, subject, body):
     emails = list(set(emails))[:100] # डुप्लीकेट हटाना और 100 की लिमिट
-    if not emails:
-        st.error("⚠️ No valid emails found.")
-        return
-
+    
     total_emails = len(emails)
     st.info(f"🚀 Starting campaign for {total_emails} contacts...")
     progress_bar = st.progress(0)
@@ -82,64 +70,87 @@ def send_emails_list(emails):
     except Exception as e:
         st.error(f"❌ Error: {e}")
 
-# ==========================================
-# 1. सेंडर और ईमेल की जानकारी (कॉमन सेक्शन)
-# ==========================================
-st.markdown('<div class="main-container">', unsafe_allow_html=True)
-st.subheader("1. Sender Details & Email Content")
 
-col1, col2 = st.columns(2)
-with col1:
-    sender_email = st.text_input("Your Gmail Address (e.g., you@gmail.com)")
-with col2:
-    app_password = st.text_input("App Password", type="password")
+# ==========================================
+# साइडबार (Navigation) - एकदम अलग करने के लिए
+# ==========================================
+st.sidebar.title("📌 Menu")
+mode = st.sidebar.radio("तरीका चुनें:", ["✍️ Manual Entry (पुराना तरीका)", "📁 Bulk Send (CSV शीट)"])
+
+
+# ==========================================
+# पेज 1: मैनुअल तरीका (बिल्कुल अलग)
+# ==========================================
+if mode == "✍️ Manual Entry (पुराना तरीका)":
+    st.title("✍️ Send Emails Manually")
     
-subject = st.text_input("Email Subject")
-body = st.text_area("Email Message", height=150)
-st.markdown('</div>', unsafe_allow_html=True)
-
-
-# ==========================================
-# 2. ईमेल भेजने के दो अलग-अलग तरीके (टैब में)
-# ==========================================
-st.subheader("2. Choose Sending Method")
-
-# यहाँ हमने दो टैब बनाए हैं, जो स्क्रीन को दो हिस्सों में बांट देंगे
-tab1, tab2 = st.tabs(["✍️ Type Emails Manually", "📁 Upload CSV File"])
-
-# --- पहला तरीका: मैनुअल (सिर्फ बॉक्स) ---
-with tab1:
-    st.markdown('<div class="main-container">', unsafe_allow_html=True)
-    st.markdown("### Send Emails Manually")
-    manual_emails = st.text_area("Enter Email IDs (separated by comma)", placeholder="test1@gmail.com, test2@yahoo.com")
-    
-    if st.button("Send Manually", key="btn_manual"):
-        if manual_emails.strip():
+    with st.form("manual_form"):
+        st.markdown('<div class="main-container">', unsafe_allow_html=True)
+        
+        st.subheader("Sender Details")
+        sender_email = st.text_input("Your Gmail Address")
+        app_password = st.text_input("App Password", type="password")
+        
+        st.markdown("---")
+        st.subheader("Email Content")
+        subject = st.text_input("Email Subject")
+        body = st.text_area("Email Message", height=150)
+        
+        st.markdown("---")
+        st.subheader("Add Contacts")
+        manual_emails = st.text_area("Enter Email IDs (separated by comma)", placeholder="test1@gmail.com, test2@yahoo.com")
+        
+        submit_manual = st.form_submit_button("Send Emails Manually")
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    if submit_manual:
+        if not sender_email or not app_password or not subject or not body or not manual_emails.strip():
+            st.error("⚠️ Please fill all details and enter at least one email.")
+        else:
             raw_emails = manual_emails.split(",")
             clean_emails = [email.strip() for email in raw_emails if email.strip()]
-            send_emails_list(clean_emails)
-        else:
-            st.error("⚠️ Please enter at least one email address in the box.")
-    st.markdown('</div>', unsafe_allow_html=True)
+            if clean_emails:
+                send_emails_logic(clean_emails, sender_email, app_password, subject, body)
 
 
-# --- दूसरा तरीका: CSV (सिर्फ फाइल अपलोड) ---
-with tab2:
-    st.markdown('<div class="main-container">', unsafe_allow_html=True)
-    st.markdown("### Send in Bulk (CSV)")
-    uploaded_file = st.file_uploader("Upload CSV (Max 100 Contacts)", type=["csv"])
+# ==========================================
+# पेज 2: CSV तरीका (बिल्कुल अलग)
+# ==========================================
+elif mode == "📁 Bulk Send (CSV शीट)":
+    st.title("📁 Send Bulk Emails via CSV")
     
-    if st.button("Send Bulk (CSV)", key="btn_csv"):
-        if uploaded_file is not None:
+    with st.form("csv_form"):
+        st.markdown('<div class="main-container">', unsafe_allow_html=True)
+        
+        st.subheader("Sender Details")
+        sender_email = st.text_input("Your Gmail Address")
+        app_password = st.text_input("App Password", type="password")
+        
+        st.markdown("---")
+        st.subheader("Email Content")
+        subject = st.text_input("Email Subject")
+        body = st.text_area("Email Message", height=150)
+        
+        st.markdown("---")
+        st.subheader("Upload Contacts")
+        uploaded_file = st.file_uploader("Upload CSV (Max 100 Contacts)", type=["csv"])
+        
+        submit_csv = st.form_submit_button("Send Bulk Emails")
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    if submit_csv:
+        if not sender_email or not app_password or not subject or not body or uploaded_file is None:
+            st.error("⚠️ Please fill all details and upload your CSV file.")
+        else:
             try:
                 df = pd.read_csv(uploaded_file)
                 if 'Email' in df.columns:
                     clean_emails = df['Email'].dropna().tolist()
-                    send_emails_list(clean_emails)
+                    if clean_emails:
+                        send_emails_logic(clean_emails, sender_email, app_password, subject, body)
+                    else:
+                        st.error("⚠️ No valid emails found in the CSV.")
                 else:
                     st.error("⚠️ CSV file must contain a column named 'Email'.")
             except Exception as e:
                 st.error(f"Error reading CSV: {e}")
-        else:
-            st.error("⚠️ Please upload a CSV file.")
-    st.markdown('</div>', unsafe_allow_html=True)
