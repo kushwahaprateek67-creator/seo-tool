@@ -43,17 +43,14 @@ with st.form("email_form"):
     
     st.markdown("---")
     
-    # ईमेल डालने का तरीका (मैनुअल या शीट)
+    # मैनुअल एंट्री
     st.subheader("Add Contacts")
-    input_method = st.radio("How do you want to add emails?", ["Enter Manually", "Upload CSV Sheet"])
+    manual_emails = st.text_area("Enter Email IDs (separated by comma) [Optional]", placeholder="test1@gmail.com, test2@yahoo.com")
     
-    manual_emails = ""
-    uploaded_file = None
+    st.markdown("**OR / AND**")
     
-    if input_method == "Enter Manually":
-        manual_emails = st.text_area("Enter Email IDs (separated by comma)", placeholder="test1@gmail.com, test2@yahoo.com")
-    else:
-        uploaded_file = st.file_uploader("Upload CSV (Max 100 Contacts)", type=["csv"])
+    # CSV अपलोड
+    uploaded_file = st.file_uploader("Upload CSV (Max 100 Contacts) [Optional]", type=["csv"])
     
     submit_button = st.form_submit_button("Start Sending Campaign")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -65,29 +62,28 @@ if submit_button:
     else:
         email_list = []
         
-        # ईमेल लिस्ट तैयार करना
-        if input_method == "Enter Manually":
-            if manual_emails.strip():
-                # कॉमा (,) से अलग करके लिस्ट बनाना
-                raw_emails = manual_emails.split(",")
-                email_list = [email.strip() for email in raw_emails if email.strip()]
-            else:
-                st.error("⚠️ Please enter at least one email address manually.")
-        else:
-            if uploaded_file is not None:
-                try:
-                    df = pd.read_csv(uploaded_file)
-                    if 'Email' in df.columns:
-                        email_list = df['Email'].dropna().tolist()
-                    else:
-                        st.error("⚠️ CSV file must contain a column named 'Email'.")
-                except Exception as e:
-                    st.error(f"Error reading CSV: {e}")
-            else:
-                st.error("⚠️ Please upload a CSV file.")
+        # मैनुअल ईमेल जोड़ना
+        if manual_emails.strip():
+            raw_emails = manual_emails.split(",")
+            email_list.extend([email.strip() for email in raw_emails if email.strip()])
         
-        # अगर ईमेल लिस्ट में डेटा है, तो सेंडिंग शुरू करें
-        if email_list:
+        # CSV से ईमेल जोड़ना
+        if uploaded_file is not None:
+            try:
+                df = pd.read_csv(uploaded_file)
+                if 'Email' in df.columns:
+                    email_list.extend(df['Email'].dropna().tolist())
+                else:
+                    st.error("⚠️ CSV file must contain a column named 'Email'.")
+            except Exception as e:
+                st.error(f"Error reading CSV: {e}")
+        
+        # डुप्लीकेट ईमेल हटाना (ताकि एक ही व्यक्ति को दो बार ईमेल न जाए)
+        email_list = list(set(email_list))
+        
+        if not email_list:
+             st.error("⚠️ Please enter emails manually or upload a CSV file.")
+        else:
             email_list = email_list[:100] # अधिकतम 100 की लिमिट
             total_emails = len(email_list)
             
@@ -114,9 +110,10 @@ if submit_button:
                         progress_bar.progress((i + 1) / total_emails)
                         status_text.success(f"✅ Sent to: {receiver_email} ({i+1}/{total_emails})")
                         
-                        # 6-16 सेकंड का डिले
+                        # 6-16 सेकंड का डिले (अब 12-16 और 6-8 सेकंड वाले अपडेट के साथ)
                         if i < total_emails - 1:
-                            delay = random.randint(6, 16)
+                            # 12-16 सेकंड और 6-8 सेकंड के बीच स्विच करना (आपकी पसंद के अनुसार)
+                            delay = random.choice([random.randint(6, 8), random.randint(12, 16)]) 
                             status_text.info(f"⏳ Waiting {delay} seconds...")
                             time.sleep(delay)
                             
