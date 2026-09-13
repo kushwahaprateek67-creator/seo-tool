@@ -1,1 +1,70 @@
 
+import streamlit as st
+import pandas as pd
+import smtplib
+import time
+import random
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+st.set_page_config(page_title="CSV Email Tool", layout="centered")
+st.markdown("""
+    <style>
+    .stApp { background-color: #0e1117; color: white; }
+    .main-container {
+        border: 2px solid #00d2ff;
+        border-radius: 10px;
+        padding: 25px;
+        background-color: #1a1c24;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("📁 Email Tool (CSV Bulk)")
+
+with st.form("csv_form"):
+    st.markdown('<div class="main-container">', unsafe_allow_html=True)
+    sender_email = st.text_input("Your Gmail Address")
+    app_password = st.text_input("App Password", type="password")
+    st.markdown("---")
+    subject = st.text_input("Email Subject")
+    body = st.text_area("Email Message", height=150)
+    st.markdown("---")
+    uploaded_file = st.file_uploader("Upload CSV (Max 100 Contacts)", type=["csv"])
+    submit = st.form_submit_button("Start Sending Bulk")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+if submit:
+    if not sender_email or not app_password or not subject or not body or uploaded_file is None:
+        st.error("⚠️ Please fill all details and upload CSV.")
+    else:
+        try:
+            df = pd.read_csv(uploaded_file)
+            email_list = list(set(df['Email'].dropna().tolist()))[:100]
+            total = len(email_list)
+            st.info(f"🚀 Sending {total} emails...")
+            progress = st.progress(0)
+            status = st.empty()
+            
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(sender_email, app_password)
+            
+            for i, email_id in enumerate(email_list):
+                try:
+                    msg = MIMEMultipart()
+                    msg['From'], msg['To'], msg['Subject'] = sender_email, email_id, subject
+                    msg.attach(MIMEText(body, 'plain'))
+                    server.send_message(msg)
+                    progress.progress((i + 1) / total)
+                    status.success(f"✅ Sent: {email_id}")
+                    
+                    if i < total - 1:
+                        delay = random.choice([random.randint(6, 8), random.randint(12, 16)]) 
+                        time.sleep(delay)
+                except Exception as e:
+                    st.error(f"❌ Failed for {email_id}: {e}")
+            server.quit()
+            st.success("🎉 Done!")
+        except Exception as e:
+            st.error(f"❌ Error: {e}")
