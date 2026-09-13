@@ -6,7 +6,6 @@ import random
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-# डार्क थीम और नियॉन-ब्लू बॉर्डर के लिए कस्टम CSS
 st.set_page_config(page_title="Bulk Email Tool", layout="centered")
 st.markdown("""
     <style>
@@ -29,45 +28,38 @@ st.title("✉️ Bulk Email Outreach Tool")
 with st.form("email_form"):
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     
-    # सेंडर की डिटेल्स
     st.subheader("Sender Details")
     sender_email = st.text_input("Your Gmail Address (e.g., you@gmail.com)")
     app_password = st.text_input("App Password", type="password", help="16-character Google App Password")
     
     st.markdown("---")
     
-    # ईमेल का कंटेंट
     st.subheader("Email Content")
     subject = st.text_input("Email Subject")
     body = st.text_area("Email Message", height=150)
     
     st.markdown("---")
     
-    # मैनुअल एंट्री
     st.subheader("Add Contacts")
-    manual_emails = st.text_area("Enter Email IDs (separated by comma) [Optional]", placeholder="test1@gmail.com, test2@yahoo.com")
+    manual_emails = st.text_area("Enter Email IDs (separated by comma)", placeholder="test1@gmail.com, test2@yahoo.com")
     
-    st.markdown("**OR / AND**")
+    st.markdown("**AND / OR**")
     
-    # CSV अपलोड
-    uploaded_file = st.file_uploader("Upload CSV (Max 100 Contacts) [Optional]", type=["csv"])
+    uploaded_file = st.file_uploader("Upload CSV Sheet (Max 100 Contacts)", type=["csv"])
     
     submit_button = st.form_submit_button("Start Sending Campaign")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# सेंडिंग लॉजिक
 if submit_button:
     if not sender_email or not app_password or not subject or not body:
         st.error("⚠️ Please fill in all Sender and Content details.")
     else:
         email_list = []
         
-        # मैनुअल ईमेल जोड़ना
         if manual_emails.strip():
             raw_emails = manual_emails.split(",")
             email_list.extend([email.strip() for email in raw_emails if email.strip()])
         
-        # CSV से ईमेल जोड़ना
         if uploaded_file is not None:
             try:
                 df = pd.read_csv(uploaded_file)
@@ -78,13 +70,12 @@ if submit_button:
             except Exception as e:
                 st.error(f"Error reading CSV: {e}")
         
-        # डुप्लीकेट ईमेल हटाना (ताकि एक ही व्यक्ति को दो बार ईमेल न जाए)
         email_list = list(set(email_list))
         
         if not email_list:
              st.error("⚠️ Please enter emails manually or upload a CSV file.")
         else:
-            email_list = email_list[:100] # अधिकतम 100 की लिमिट
+            email_list = email_list[:100]
             total_emails = len(email_list)
             
             st.info(f"🚀 Starting campaign for {total_emails} contacts...")
@@ -92,7 +83,6 @@ if submit_button:
             status_text = st.empty()
             
             try:
-                # SMTP कनेक्शन
                 server = smtplib.SMTP('smtp.gmail.com', 587)
                 server.starttls()
                 server.login(sender_email, app_password)
@@ -110,9 +100,7 @@ if submit_button:
                         progress_bar.progress((i + 1) / total_emails)
                         status_text.success(f"✅ Sent to: {receiver_email} ({i+1}/{total_emails})")
                         
-                        # 6-16 सेकंड का डिले (अब 12-16 और 6-8 सेकंड वाले अपडेट के साथ)
                         if i < total_emails - 1:
-                            # 12-16 सेकंड और 6-8 सेकंड के बीच स्विच करना (आपकी पसंद के अनुसार)
                             delay = random.choice([random.randint(6, 8), random.randint(12, 16)]) 
                             status_text.info(f"⏳ Waiting {delay} seconds...")
                             time.sleep(delay)
