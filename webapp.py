@@ -74,7 +74,7 @@ st.markdown("""
 
 st.title("⚡ PHANTOM_SEO // OUTREACH_NEXUS")
 
-mode = st.radio("SELECT_EXECUTION_PROTOCOL:", ["✍️ // SINGLE_TARGET_MODE (Manual)", "📁 // MASS_INJECTION (CSV Bulk)"])
+mode = st.radio("SELECT_EXECUTION_PROTOCOL:", ["✍️ // MULTI_TARGET_MANUAL", "📁 // MASS_INJECTION (CSV Bulk)"])
 
 # --- ईमेल भेजने का मेन इंजन ---
 def execute_campaign(targets, sender, password, sub, msg_body):
@@ -95,7 +95,6 @@ def execute_campaign(targets, sender, password, sub, msg_body):
             target_email = target_data['email']
             
             try:
-                # [Name] को असली नाम से बदलना
                 personalized_body = msg_body.replace("[Name]", target_name).replace("[name]", target_name)
                 
                 msg = MIMEMultipart()
@@ -107,7 +106,7 @@ def execute_campaign(targets, sender, password, sub, msg_body):
                 server.send_message(msg)
                 
                 progress.progress((i + 1) / total)
-                status.success(f"✔️ PAYLOAD_DELIVERED: {target_name} ({target_email}) [{i+1}/{total}]")
+                status.success(f"✔️ PAYLOAD_DELIVERED: {target_email} [{i+1}/{total}]")
                 
                 if i < total - 1:
                     delay = random.choice([random.randint(6, 8), random.randint(12, 16)]) 
@@ -123,9 +122,9 @@ def execute_campaign(targets, sender, password, sub, msg_body):
         st.error(f"❌ AUTH_FAILED: Access Denied. Check App Password. -> {e}")
 
 # ==========================================
-# फ्रेम 1: मैनुअल तरीका (एक-एक करके भेजने के लिए)
+# फ्रेम 1: मैनुअल तरीका (कॉमा या नंबर/लाइन दोनों सपोर्ट करेगा)
 # ==========================================
-if mode == "✍️ // SINGLE_TARGET_MODE (Manual)":
+if mode == "✍️ // MULTI_TARGET_MANUAL":
     with st.form("manual_frame"):
         st.markdown("#### [// SYSTEM_AUTHENTICATION //]")
         sender_email = st.text_input("GMAIL_ID (Operator)")
@@ -139,27 +138,47 @@ if mode == "✍️ // SINGLE_TARGET_MODE (Manual)":
         
         st.markdown("---")
         st.markdown("#### [// TARGET_ACQUISITION //]")
-        # नाम और ईमेल के अलग-अलग बॉक्स
-        col1, col2 = st.columns(2)
-        with col1:
-            target_name = st.text_input("TARGET_NAME (e.g., Rahul)")
-        with col2:
-            target_email = st.text_input("TARGET_EMAIL (e.g., rahul@domain.com)")
+        target_name = st.text_input("TARGET_NAME (Applies to all emails below, e.g., 'Webmaster' or 'Admin')")
+        
+        manual_emails = st.text_area("TARGET_EMAILS (Enter comma separated OR line-by-line / numbered list)", height=100)
         
         submit = st.form_submit_button(">> EXECUTE_PROTOCOL <<")
         
         if submit:
-            if not sender_email or not app_password or not subject or not body or not target_email.strip():
-                st.error("⚠️ ERROR: Missing critical parameters (Email is mandatory).")
+            if not sender_email or not app_password or not subject or not body or not manual_emails.strip():
+                st.error("⚠️ ERROR: Missing critical parameters.")
             else:
-                # अगर नाम खाली छोड़ा है, तो 'Friend' यूज़ करेगा
                 final_name = target_name.strip() if target_name.strip() else "Friend"
-                targets = [{"name": final_name, "email": target_email.strip()}]
                 
-                execute_campaign(targets, sender_email, app_password, subject, body)
+                # यह कोड कॉमा (,) और नई लाइन (\n) दोनों को संभाल लेगा
+                import re
+                # पहले लाइनों में तोड़ें, फिर कॉमा से तोड़ें
+                lines = manual_emails.split("\n")
+                extracted_emails = []
+                for line in lines:
+                    # अगर लाइन में कॉमा है तो उन्हें अलग करें
+                    parts = line.split(",")
+                    for p in parts:
+                        cleaned = p.strip()
+                        # नंबर (जैसे 1., 2.) या फालतू चीजें हटाने के लिए बेसिक ईमेल फ़िल्टर
+                        # '@' होने पर ही ईमेल मानेगा
+                        if "@" in cleaned:
+                            extracted_emails.append(cleaned)
+                
+                targets = []
+                for email in extracted_emails:
+                    targets.append({"name": final_name, "email": email})
+                
+                # डुप्लीकेट हटाना
+                unique_targets = list({t['email']: t for t in targets}.values())
+                
+                if unique_targets:
+                    execute_campaign(unique_targets, sender_email, app_password, subject, body)
+                else:
+                    st.error("⚠️ FORMAT_ERROR: No valid emails found. Make sure '@' is included.")
 
 # ==========================================
-# फ्रेम 2: CSV तरीका (बल्क भेजने के लिए)
+# फ्रेम 2: CSV तरीका
 # ==========================================
 elif mode == "📁 // MASS_INJECTION (CSV Bulk)":
     with st.form("csv_frame"):
@@ -191,7 +210,7 @@ elif mode == "📁 // MASS_INJECTION (CSV Bulk)":
                         for index, row in df.iterrows():
                             email_val = str(row['Email']).strip()
                             if 'Name' in df.columns and pd.notna(row['Name']):
-                                name_val = str(row['Name']).strip()
+                                name_val = str(row['Name'].strip())
                             else:
                                 name_val = "Friend"
                                 
