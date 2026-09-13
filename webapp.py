@@ -1,88 +1,131 @@
 import streamlit as st
+import pandas as pd
 import smtplib
 import time
 import random
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-# डार्क थीम और नियॉन-ब्लू बॉर्डर
+# हैकर डार्क थीम और नियॉन-ब्लू बॉर्डर कॉन्फ़िगरेशन
+st.set_page_config(page_title="Wild Rank Mailer", layout="centered")
 st.markdown("""
     <style>
     .stApp {
-        background-color: #0e1117;
-        color: white;
+        background-color: #0a0a0a; /* Deep Dark Background */
+        color: #ffffff;
     }
+    /* सिंगल-फ्रेम UI - नियॉन ब्लू बॉर्डर और ग्लो इफेक्ट */
     .main-container {
         border: 2px solid #00d2ff;
-        border-radius: 10px;
-        padding: 20px;
-        background-color: #1a1c24;
+        box-shadow: 0 0 15px #00d2ff;
+        border-radius: 8px;
+        padding: 30px;
+        background-color: #111111;
+        margin-bottom: 20px;
+    }
+    h1, h2, h3, h4 {
+        color: #00d2ff !important;
+    }
+    /* रेडियो बटन को सेंटर में रखने के लिए */
+    div.row-widget.stRadio > div {
+        flex-direction: row;
+        justify-content: center;
+        margin-bottom: 15px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("✉️ Bulk Email Outreach Tool")
+st.title("⚡ Wild Rank Outreach Tool")
 
-# एक ही फॉर्म / कंटेनर
-with st.form("email_form"):
+# तरीका चुनने का ऑप्शन (सिंगल फ्रेम के बाहर)
+mode = st.radio("Select Targeting Mode:", ["Manual Entry", "CSV Bulk Upload"])
+
+# सिंगल-फ्रेम हैकर UI (नीले बॉर्डर के अंदर)
+with st.form("hacker_form"):
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     
+    st.markdown("#### [1] Authentication")
     sender_email = st.text_input("Your Gmail Address")
     app_password = st.text_input("App Password", type="password")
     
+    st.markdown("---")
+    st.markdown("#### [2] Payload (Email Content)")
     subject = st.text_input("Subject")
-    body = st.text_area("Email Message", height=150)
+    body = st.text_area("Body", height=150)
     
-    # ईमेल डालने का बॉक्स
-    receiver_emails = st.text_area("Receiver Emails (Comma separated)")
+    st.markdown("---")
+    st.markdown("#### [3] Targets")
     
-    submit_button = st.form_submit_button("Start Sending")
+    # जो तरीका ऊपर चुना है, सिर्फ वही यहाँ दिखेगा
+    if mode == "Manual Entry":
+        manual_emails = st.text_area("Enter Email IDs (comma separated)", placeholder="target1@gmail.com, target2@gmail.com")
+        uploaded_file = None
+    else:
+        manual_emails = ""
+        uploaded_file = st.file_uploader("Upload Target CSV", type=["csv"])
+        
+    submit = st.form_submit_button("EXECUTE [Start Sending]")
     st.markdown('</div>', unsafe_allow_html=True)
 
-if submit_button:
-    if not sender_email or not app_password or not subject or not body or not receiver_emails:
-        st.error("Please fill all fields.")
+# सेंडिंग लॉजिक और रैंडम डिले
+if submit:
+    if not sender_email or not app_password or not subject or not body:
+        st.error("⚠️ All authentication and payload fields are required.")
     else:
-        # ईमेल लिस्ट बनाना
-        email_list = [email.strip() for email in receiver_emails.split(",") if email.strip()]
-        total_emails = len(email_list)
+        email_list = []
         
-        st.info("Starting campaign...")
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        
-        try:
-            # SMTP कनेक्शन
-            server = smtplib.SMTP('smtp.gmail.com', 587)
-            server.starttls()
-            server.login(sender_email, app_password)
-            
-            for i, email_id in enumerate(email_list):
+        if mode == "Manual Entry":
+            if manual_emails.strip():
+                email_list = [e.strip() for e in manual_emails.split(",") if e.strip()]
+            else:
+                st.error("⚠️ Enter at least one target.")
+        else:
+            if uploaded_file is not None:
                 try:
-                    # मैसेज तैयार करना
-                    msg = MIMEMultipart()
-                    msg['From'] = sender_email
-                    msg['To'] = email_id
-                    msg['Subject'] = subject
-                    msg.attach(MIMEText(body, 'plain'))
-                    
-                    # मैसेज भेजना
-                    server.send_message(msg)
-                    
-                    # प्रोग्रेस अपडेट
-                    progress_bar.progress((i + 1) / total_emails)
-                    status_text.text(f"Sent to: {email_id} ({i+1}/{total_emails})")
-                    
-                    # डिले (12-16 सेकंड और 6-16 का मिक्स)
-                    if i < total_emails - 1:
-                        time.sleep(random.randint(6, 16))
+                    df = pd.read_csv(uploaded_file)
+                    if 'Email' in df.columns:
+                        email_list = df['Email'].dropna().tolist()
+                    else:
+                        st.error("⚠️ CSV must contain an 'Email' column.")
+                except:
+                    st.error("⚠️ Error reading CSV.")
+            else:
+                st.error("⚠️ Upload a CSV file.")
+        
+        if email_list:
+            email_list = list(set(email_list))[:100]
+            total = len(email_list)
+            st.info(f"🚀 Initializing attack on {total} targets...")
+            progress = st.progress(0)
+            status = st.empty()
+            
+            try:
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(sender_email, app_password)
+                
+                for i, target in enumerate(email_list):
+                    try:
+                        msg = MIMEMultipart()
+                        msg['From'] = sender_email
+                        msg['To'] = target
+                        msg['Subject'] = subject
+                        msg.attach(MIMEText(body, 'plain'))
+                        server.send_message(msg)
                         
-                except Exception as e:
-                    st.error(f"Failed to send to {email_id}: {e}")
-                    continue
-            
-            server.quit()
-            st.success("✅ All emails sent successfully!")
-            
-        except Exception as e:
-            st.error(f"SMTP Login Failed: {e}. Check Email and App Password.")
+                        progress.progress((i + 1) / total)
+                        status.success(f"✅ Payload delivered: {target}")
+                        
+                        # स्पैम फिल्टर से बचने के लिए 12-16 सेकंड और 6-8 सेकंड का कस्टम डिले
+                        if i < total - 1:
+                            delay = random.choice([random.randint(6, 8), random.randint(12, 16)]) 
+                            status.info(f"⏳ Waiting {delay} seconds before next execution...")
+                            time.sleep(delay)
+                            
+                    except Exception as e:
+                        st.error(f"❌ Failed for {target}: {e}")
+                
+                server.quit()
+                st.success("🎉 Campaign Executed Successfully!")
+            except Exception as e:
+                st.error("❌ Connection Failed: Check your App Password.")
