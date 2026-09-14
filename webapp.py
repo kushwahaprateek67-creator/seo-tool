@@ -8,9 +8,9 @@ from email.mime.multipart import MIMEMultipart
 # ==========================================
 # 🔒 टूल का एक्सेस पासवर्ड
 # ==========================================
-TOOL_PASSWORD = "phantom123"
+TOOL_PASSWORD = "Prateek@2026"
 
-st.set_page_config(page_title="Phantom SEO Mailer", layout="centered")
+st.set_page_config(page_title="Prateek SEO Mailer", layout="centered")
 
 # पूरा हैकर थीम (Dark & Neon Blue CSS)
 st.markdown("""
