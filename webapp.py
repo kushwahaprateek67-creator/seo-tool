@@ -6,13 +6,13 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 # ==========================================
-# 🔒 टूल का पासवर्ड
+# 🔒 टूल का एक्सेस पासवर्ड
 # ==========================================
-TOOL_PASSWORD = "Prateek@2026"
+TOOL_PASSWORD = "phantom123"
 
-st.set_page_config(page_title="Bulk Email Tool", layout="centered")
+st.set_page_config(page_title="Phantom SEO Mailer", layout="centered")
 
-# पूरा ओरिजिनल फ्रेम और नियॉन-ब्लू CSS
+# पूरा हैकर थीम (Dark & Neon Blue CSS)
 st.markdown("""
     <style>
     .stApp, .stApp > header { background-color: #000000 !important; }
@@ -79,7 +79,6 @@ if not st.session_state["authenticated"]:
     st.stop()
 
 # ----------------- मेन फ्रेम -----------------
-
 st.markdown("<h1 style='text-align: center;'>✉️ Phantom SEO Outreach</h1>", unsafe_allow_html=True)
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
@@ -109,20 +108,14 @@ if send_button:
     if not sender_name or not gmail_id or not app_password or not data.strip() or not subject_line or not email_template:
         st.error("⚠️ कृपया सभी जानकारी (Name, Gmail ID, Password, Subject, Template और Data) भरें!")
     else:
-        # डेटा को प्रोसेस करना (नाम और ईमेल अलग करना)
-        raw_lines = data.replace("\r", "").split("\n")
-        targets = []
-        for line in raw_lines:
-            if "," in line and "@" in line:
-                name_part, email_part = line.split(",", 1)
-                targets.append({"name": name_part.strip(), "email": email_part.strip()})
-            elif "@" in line:
-                targets.append({"name": "Friend", "email": line.strip()}) # अगर कोई सिर्फ ईमेल डाले
+        # सिर्फ ईमेल आईडी निकालने का क्लीन लॉजिक (कॉमा या एंटर, दोनों से काम करेगा)
+        raw_emails = data.replace(",", "\n").split("\n")
+        emails_list = list(dict.fromkeys([e.strip() for e in raw_emails if "@" in e.strip()]))
                 
-        if not targets:
-            st.error("⚠️ कोई वैध ईमेल आईडी नहीं मिली! फॉर्मेट चेक करें (Name, Email)")
+        if not emails_list:
+            st.error("⚠️ कोई वैध ईमेल आईडी नहीं मिली! फॉर्मेट चेक करें।")
         else:
-            total_emails = len(targets)
+            total_emails = len(emails_list)
             st.info(f"🚀 कुल {total_emails} ईमेल्स भेजना शुरू किया जा रहा है...")
             progress_bar = st.progress(0)
             status_box = st.empty()
@@ -133,13 +126,10 @@ if send_button:
                 server.login(gmail_id, app_password)
                 
                 success_count = 0
-                for i, target_data in enumerate(targets):
-                    rcv_email = target_data['email']
-                    rcv_name = target_data['name']
-                    
+                for i, rcv_email in enumerate(emails_list):
                     try:
-                        # [Name] और {sender} को असली नामों से रिप्लेस करना
-                        personalized_body = email_template.replace("{sender}", sender_name).replace("[Name]", rcv_name).replace("[name]", rcv_name)
+                        # सिर्फ {sender} रिप्लेस होगा क्योंकि नाम वाला सिस्टम हटा दिया है
+                        personalized_body = email_template.replace("{sender}", sender_name)
                         
                         msg = MIMEMultipart()
                         msg['From'] = f"{sender_name} <{gmail_id}>"
@@ -151,9 +141,9 @@ if send_button:
                         success_count += 1
                         
                         progress_bar.progress((i + 1) / total_emails)
-                        status_box.success(f"✅ Sent ({i+1}/{total_emails}): {rcv_name} ({rcv_email})")
+                        status_box.success(f"✅ Sent ({i+1}/{total_emails}): {rcv_email}")
                         
-                        # रैंडम स्मार्ट टाइमर (6 से 8 सेकंड) + लाइव काउंटडाउन
+                        # 6-8 सेकंड का स्मार्ट लाइव काउंटडाउन (स्पैम से बचने के लिए)
                         if i < total_emails - 1:
                             delay = random.randint(6, 8)
                             for sec in range(delay, 0, -1):
@@ -166,9 +156,10 @@ if send_button:
                         
                 server.quit()
                 
-                status_box.empty() # काउंटडाउन बॉक्स हटा देगा
+                status_box.empty() # लास्ट में पीला काउंटडाउन बॉक्स हटा देगा
                 st.balloons()
+                st.snow()
                 st.success(f"🎉 शानदार! कुल {success_count}/{total_emails} ईमेल सफलतापूर्वक भेज दिए गए!")
                 
             except Exception as e:
-                st.error(f"❌ SMTP कनेक्शन या ऑथेंटिकेशन एरर (ऐप पासवर्ड चेक करें): {e}")
+                st.error(f"❌ SMTP कनेक्शन या ऑथेंटिकेशन एरर (अपना ऐप पासवर्ड चेक करें): {e}")
