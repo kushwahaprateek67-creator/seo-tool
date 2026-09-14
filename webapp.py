@@ -1,22 +1,26 @@
 import streamlit as st
 import smtplib
 import time
-import random
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 # ==========================================
-# 🔒 टूल का एक्सेस पासवर्ड
+# 🔒 टूल का पासवर्ड यहाँ सेट करें
 # ==========================================
 TOOL_PASSWORD = "Prateek@2026"
 
-st.set_page_config(page_title="Prateek SEO Mailer", layout="centered")
+# पेज सेटिंग
+st.set_page_config(page_title="Bulk Email Tool", layout="centered")
 
-# पूरा हैकर थीम (Dark & Neon Blue CSS)
+# पूरा ओरिजिनल फ्रेम और नियॉन-ब्लू CSS
 st.markdown("""
     <style>
-    .stApp, .stApp > header { background-color: #000000 !important; }
+    /* 1. स्क्रीन का बाहरी हिस्सा (पूरा ब्लैक) */
+    .stApp, .stApp > header {
+        background-color: #000000 !important; 
+    }
     
+    /* 2. आपका मेन फ्रेम */
     .block-container {
         background-color: #001122 !important;
         border: 3px solid #00bfff !important;
@@ -28,12 +32,14 @@ st.markdown("""
         max-width: 900px !important;
     }
     
+    /* 3. टेक्स्ट और हेडर्स का रंग */
     h1, h2, h3, label p, .stMarkdown p {
         font-weight: 800 !important;
         color: #00bfff !important; 
         font-size: 16px !important;
     }
 
+    /* 4. इनपुट बॉक्स का डिज़ाइन */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
         background-color: #000000 !important; 
         color: #00bfff !important; 
@@ -41,6 +47,7 @@ st.markdown("""
         border-radius: 8px !important;
     }
 
+    /* 5. सेंड बटन का डिज़ाइन */
     .stButton>button {
         background-color: #0044cc !important;
         color: white !important;
@@ -59,7 +66,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ----------------- पासवर्ड वेरिफिकेशन -----------------
+# ----------------- पासवर्ड वेरिफिकेशन गेट -----------------
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
@@ -78,42 +85,46 @@ if not st.session_state["authenticated"]:
                 st.error("❌ Access Denied: Invalid Password")
     st.stop()
 
-# ----------------- मेन फ्रेम -----------------
-st.markdown("<h1 style='text-align: center;'>✉️ Prateek SEO Outreach</h1>", unsafe_allow_html=True)
+# ----------------- फ्रेम के अंदर का मुख्य कंटेंट -----------------
+
+st.markdown("<h1 style='text-align: center;'>✉️ Bulk Email Tool</h1>", unsafe_allow_html=True)
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
+# लेआउट को दो भागों में बाँटना
 col1, col2 = st.columns(2, gap="large")
 
+# पहला हिस्सा - अकाउंट की जानकारी
 with col1:
     st.markdown("### 1. अकाउंट डिटेल्स")
     sender_name = st.text_input("Sender Name", placeholder="अपना नाम लिखें")
     gmail_id = st.text_input("Gmail ID", placeholder="your-email@gmail.com")
-    app_password = st.text_input("App Password", type="password", placeholder="16 अंकों का ऐप पासवर्ड")
+    app_password = st.text_input("App Password", type="password", placeholder="16 अंकों का पासवर्ड")
 
+# दूसरा हिस्सा - ईमेल मैसेज और डेटा
 with col2:
     st.markdown("### 2. संदेश और डेटा")
     subject_line = st.text_input("Subject Line", placeholder="ईमेल का विषय")
-    email_template = st.text_area("Email Template", height=110, placeholder="Hi Team,\n\nMy name is {sender}...")
-    st.caption("*(फॉर्मेट: हर लाइन में सिर्फ एक ईमेल आईडी पेस्ट करें)*")
-    data = st.text_area("Data (Email IDs)", height=110, placeholder="info@example.com\ncontact@website.com")
+    email_template = st.text_area("Email Template", height=110, placeholder="अपना मैसेज यहाँ लिखें... (Use {sender} for your name)")
+    data = st.text_area("Data (Email IDs - हर लाइन में एक या कॉमा से)", height=110, placeholder="example1@gmail.com\nexample2@gmail.com")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
+# सेंड बटन को बीच में करने के लिए
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
-    send_button = st.button("🚀 Send Campaign", use_container_width=True)
+    send_button = st.button("🚀 Send Mail", use_container_width=True)
 
-# ----------------- ईमेल भेजने का मेन लॉजिक -----------------
+# ईमेल भेजने का लॉजिक (6 सेकंड टाइमर + प्रोग्रेस + एनिमेशन)
 if send_button:
     if not sender_name or not gmail_id or not app_password or not data.strip() or not subject_line or not email_template:
-        st.error("⚠️ कृपया सभी जानकारी (Name, Gmail ID, Password, Subject, Template और Data) भरें!")
+        st.error("⚠️ कृपया सभी ज़रूरी जानकारी (Sender Name, Gmail ID, Password, Subject, Template और Data) भरें!")
     else:
-        # सिर्फ ईमेल आईडी निकालने का क्लीन लॉजिक (कॉमा या एंटर, दोनों से काम करेगा)
-        raw_emails = data.replace(",", "\n").split("\n")
-        emails_list = list(dict.fromkeys([e.strip() for e in raw_emails if "@" in e.strip()]))
-                
+        # कॉमा और लाइन-ब्रेक दोनों को प्रोसेस करना
+        raw_lines = data.replace(",", "\n").split("\n")
+        emails_list = list(dict.fromkeys([e.strip() for e in raw_lines if "@" in e.strip()]))
+        
         if not emails_list:
-            st.error("⚠️ कोई वैध ईमेल आईडी नहीं मिली! फॉर्मेट चेक करें।")
+            st.error("⚠️ कोई वैध ईमेल आईडी नहीं मिली!")
         else:
             total_emails = len(emails_list)
             st.info(f"🚀 कुल {total_emails} ईमेल्स भेजना शुरू किया जा रहा है...")
@@ -128,7 +139,6 @@ if send_button:
                 success_count = 0
                 for i, rcv_email in enumerate(emails_list):
                     try:
-                        # सिर्फ {sender} रिप्लेस होगा क्योंकि नाम वाला सिस्टम हटा दिया है
                         personalized_body = email_template.replace("{sender}", sender_name)
                         
                         msg = MIMEMultipart()
@@ -143,12 +153,9 @@ if send_button:
                         progress_bar.progress((i + 1) / total_emails)
                         status_box.success(f"✅ Sent ({i+1}/{total_emails}): {rcv_email}")
                         
-                        # 6-8 सेकंड का स्मार्ट लाइव काउंटडाउन (स्पैम से बचने के लिए)
+                        # हर मेल के बाद 6 सेकंड का फिक्स डिले
                         if i < total_emails - 1:
-                            delay = random.randint(6, 8)
-                            for sec in range(delay, 0, -1):
-                                status_box.warning(f"⏳ Anti-Spam: अगला ईमेल {sec} सेकंड में जाएगा...")
-                                time.sleep(1)
+                            time.sleep(6)
                             
                     except Exception as mail_err:
                         st.error(f"❌ Failed for {rcv_email}: {mail_err}")
@@ -156,10 +163,10 @@ if send_button:
                         
                 server.quit()
                 
-                status_box.empty() # लास्ट में पीला काउंटडाउन बॉक्स हटा देगा
+                # सफल होने पर एनिमेशन
                 st.balloons()
                 st.snow()
                 st.success(f"🎉 शानदार! कुल {success_count}/{total_emails} ईमेल सफलतापूर्वक भेज दिए गए!")
                 
             except Exception as e:
-                st.error(f"❌ SMTP कनेक्शन या ऑथेंटिकेशन एरर (अपना ऐप पासवर्ड चेक करें): {e}")
+                st.error(f"❌ SMTP कनेक्शन या ऑथेंटिकेशन एरर: {e}")
