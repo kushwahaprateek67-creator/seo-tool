@@ -79,7 +79,7 @@ if not st.session_state["authenticated"]:
     st.stop()
 
 # ----------------- मेन फ्रेम -----------------
-st.markdown("<h1 style='text-align: center;'>✉️ Phantom SEO Outreach</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>✉️ Prateek SEO Outreach</h1>", unsafe_allow_html=True)
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
 col1, col2 = st.columns(2, gap="large")
