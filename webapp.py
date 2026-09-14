@@ -94,10 +94,9 @@ with col1:
 with col2:
     st.markdown("### 2. संदेश और डेटा")
     subject_line = st.text_input("Subject Line", placeholder="ईमेल का विषय")
-    st.caption("*(टिप: मैसेज में **[Name]** लिखें, यह ऑटोमैटिकली नाम से बदल जाएगा)*")
-    email_template = st.text_area("Email Template", height=90, placeholder="Hi [Name],\n\nMy name is {sender}...")
-    st.caption("*(फॉर्मेट: **Name, Email** कॉमा लगाकर)*")
-    data = st.text_area("Data (Name, Email)", height=90, placeholder="Rahul, rahul@gmail.com\nPriya, priya@yahoo.com")
+    email_template = st.text_area("Email Template", height=110, placeholder="Hi Team,\n\nMy name is {sender}...")
+    st.caption("*(फॉर्मेट: हर लाइन में सिर्फ एक ईमेल आईडी पेस्ट करें)*")
+    data = st.text_area("Data (Email IDs)", height=110, placeholder="info@example.com\ncontact@website.com")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
