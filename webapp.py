@@ -1,5 +1,6 @@
 import streamlit as st
 import smtplib
+import time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -137,10 +138,11 @@ else:
                         
                         server.sendmail(gmail_id, rcv_email, msg.as_string())
                         success_count += 1
+                        time.sleep(8)  # 8 सेकंड का delay हर email के बाद
                         
                     server.quit()
                     
                     st.balloons() 
                     st.success(f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक भेज दिए गए!")
                 except Exception as e:
-                    st.error(f"❌ ईमेल भेजने में समस्या आई। एरر: {e}")
+                    st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
