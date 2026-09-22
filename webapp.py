@@ -121,7 +121,13 @@ else:
             emails_list = [email.strip() for email in data.split('\n') if email.strip()]
             
             with st.spinner("ईमेल भेजे जा रहे हैं, कृपया प्रतीक्षा करें..."):
-                try:
+                progress_bar = st.progress(0)
+for idx, rcv_email in enumerate(emails_list):
+    # ... email भेजने का code ...
+    success_count += 1
+    time.sleep(8)
+    progress_bar.progress((idx + 1) / len(emails_list))
+    st.write(f"📧 {success_count}/{len(emails_list)} emails भेजे गए")
                     server = smtplib.SMTP('smtp.gmail.com', 587)
                     server.starttls()
                     server.login(gmail_id, app_password)
