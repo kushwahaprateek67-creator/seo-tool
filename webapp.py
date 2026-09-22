@@ -120,29 +120,39 @@ else:
         else:
             emails_list = [email.strip() for email in data.split('\n') if email.strip()]
             
-            with st.spinner("ईमेल भेजे जा रहे हैं, कृपया प्रतीक्षा करें..."):
-            
-                    server = smtplib.SMTP('smtp.gmail.com', 587)
-                    server.starttls()
-                    server.login(gmail_id, app_password)
+            try:
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(gmail_id, app_password)
+                
+                success_count = 0
+                total_emails = len(emails_list)
+                
+                for idx, rcv_email in enumerate(emails_list):
+                    personalized_body = email_template.replace("{sender}", sender_name)
                     
-                    success_count = 0
-                    for rcv_email in emails_list:
-                        personalized_body = email_template.replace("{sender}", sender_name)
-                        
-                        msg = MIMEMultipart()
-                        msg['From'] = f"{sender_name} <{gmail_id}>"
-                        msg['To'] = rcv_email
-                        msg['Subject'] = subject_line
-                        msg.attach(MIMEText(personalized_body, 'plain'))
-                        
-                        server.sendmail(gmail_id, rcv_email, msg.as_string())
-                        success_count += 1
-                        time.sleep(8)  # 8 सेकंड का delay हर email के बाद
-                        
-                    server.quit()
+                    msg = MIMEMultipart()
+                    msg['From'] = f"{sender_name} <{gmail_id}>"
+                    msg['To'] = rcv_email
+                    msg['Subject'] = subject_line
+                    msg.attach(MIMEText(personalized_body, 'plain'))
                     
-                    st.balloons() 
-                    st.success(f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक भेज दिए गए!")
-                except Exception as e:
-                    st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
+                    server.sendmail(gmail_id, rcv_email, msg.as_string())
+                    success_count += 1
+                    
+                    # Progress bar और status update करो
+                    progress = (idx + 1) / total_emails
+                    progress_bar.progress(progress)
+                    status_text.write(f"📧 {success_count}/{total_emails} ईमेल भेज दिए गए")
+                    
+                    time.sleep(8)  # 8 सेकंड का delay हर email के बाद
+                        
+                server.quit()
+                
+                st.balloons() 
+                st.success(f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक भेज दिए गए!")
+            except Exception as e:
+                st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
