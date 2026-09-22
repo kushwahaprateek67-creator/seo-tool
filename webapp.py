@@ -148,7 +148,7 @@ else:
                     progress_bar.progress(progress)
                     status_text.write(f"📧 {success_count}/{total_emails} ईमेल भेज दिए गए")
                     
-                    time.sleep(8)  # 8 सेकंड का delay हर email के बाद
+                    time.sleep(4)  # 8 सेकंड का delay हर email के बाद
                         
                 server.quit()
                 
