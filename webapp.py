@@ -11,10 +11,10 @@ import streamlit as st
 login_box = st.empty()
 
 user_password = login_box.text_input(
-    "Tool open karne ke liye password dalein:", type="password"
+    "Tool open karne ke liye password dalein:", type="Prateek@2026"
 )
 
-if user_password != st.secrets[Prateek@2026]:
+if user_password != st.secrets["my_password"]:
   st.warning("Kripya sahi password enter karein.")
   st.stop()
 else:
