@@ -1,10 +1,8 @@
-from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import random
 import smtplib
 import time
-from zoneinfo import ZoneInfo
 import streamlit as st
 
 # Apna fixed password yahan set karein
@@ -25,7 +23,7 @@ else:
 # पेज सेटिंग
 st.set_page_config(page_title="Bulk Email Tool", layout="centered")
 
-# पूरे ऐप का CSS डिज़ाइन
+# पूरे ऐप का CSS डिज़ाइन और JavaScript Live Clock
 st.markdown(
     """
     <style>
@@ -68,6 +66,22 @@ st.markdown(
         box-shadow: 0px 0px 15px #00bfff;
     }
     </style>
+
+    <script>
+    function updateClock() {
+        const tzSelect = document.getElementById('city-selector-hidden');
+        if (!tzSelect) return;
+        const tz = tzSelect.value;
+        const options = { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, month: 'short', day: 'numeric', year: 'numeric' };
+        const now = new Date();
+        const clockElem = document.getElementById('live-running-clock');
+        if (clockElem) {
+            clockElem.innerText = now.toLocaleString('en-US', options);
+        }
+    }
+    setInterval(updateClock, 1000);
+    window.onload = updateClock;
+    </script>
 """,
     unsafe_allow_html=True,
 )
@@ -105,18 +119,18 @@ tz_mapping = {
 }
 selected_tz_code = tz_mapping[target_city]
 
-# Live Clock Display Placeholder (Python based)
-clock_placeholder = st.empty()
-
-# Current time fetch karke turant dikhana
-current_us_time = datetime.now(ZoneInfo(selected_tz_code)).strftime(
-    "%I:%M:%S %p (%d %b %Y)"
+# Hidden input to pass selected timezone to Javascript
+st.markdown(
+    f'<input type="hidden" id="city-selector-hidden" value="{selected_tz_code}">',
+    unsafe_allow_html=True,
 )
-clock_placeholder.markdown(
+
+# Live Running Clock Display Box
+st.markdown(
     f"""
     <div style="background-color: #000000; border: 2px solid #00bfff; border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0px 0px 15px rgba(0, 191, 255, 0.3);">
-        <p style="color: #00bfff; margin: 0; font-size: 15px;">Live Time in {target_city}</p>
-        <h2 style="color: white; margin: 10px 0 0 0; font-size: 26px;">{current_us_time}</h2>
+        <p style="color: #00bfff; margin: 0; font-size: 15px;">Live Running Time in {target_city}</p>
+        <h2 id="live-running-clock" style="color: white; margin: 10px 0 0 0; font-size: 26px;">Loading...</h2>
     </div>
 """,
     unsafe_allow_html=True,
