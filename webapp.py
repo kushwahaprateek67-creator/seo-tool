@@ -3,8 +3,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import random
 import smtplib
-import time  # NAYA: Time delay ke liye
-import pytz  # NAYA: Timezone handle karne ke liye
+import time
+from zoneinfo import ZoneInfo
 import streamlit as st
 
 # Password System (Jo sahi password dalne par gayab ho jayega)
@@ -18,7 +18,7 @@ if user_password != st.secrets["my_password"]:
   st.warning("Kripya sahi password enter karein.")
   st.stop()
 else:
-  login_box.empty()  # Password sahi hone par dabbe ko screen se hata dega
+  login_box.empty()  # Password sahi hone par dabbe को screen se hata dega
 
 # पेज सेटिंग
 st.set_page_config(page_title="Bulk Email Tool", layout="centered")
@@ -88,14 +88,17 @@ st.markdown(
 )
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
-# 🇺🇸 USA Live Time Box Widget
-ny_tz = pytz.timezone("America/New_York")
-la_tz = pytz.timezone("America/Los_Angeles")
+# 🇺🇸 USA Live Time Box Widget (Using built-in zoneinfo)
+ny_tz = ZoneInfo("America/New_York")
+la_tz = ZoneInfo("America/Los_Angeles")
 
 current_ny = datetime.now(ny_tz).strftime("%I:%M:%S %p (%d %b)")
 current_la = datetime.now(la_tz).strftime("%I:%M:%S %p (%d %b)")
 
-st.markdown("<h3 style='text-align: center;'>🇺🇸 USA Current Live Time</h3>", unsafe_allow_html=True)
+st.markdown(
+    "<h3 style='text-align: center;'>🇺🇸 USA Current Live Time</h3>",
+    unsafe_allow_html=True,
+)
 t_col1, t_col2 = st.columns(2)
 with t_col1:
   st.metric(label="New York (EST/EDT)", value=current_ny)
@@ -157,7 +160,6 @@ if send_button:
 
         success_count = 0
 
-        # NAYA: Progress bar aur status message set karna
         progress_bar = st.progress(0)
         status_text = st.empty()
 
@@ -170,20 +172,14 @@ if send_button:
           msg["Subject"] = subject_line
           msg.attach(MIMEText(personalized_body, "plain"))
 
-          # Email bhejna
           server.sendmail(gmail_id, rcv_email, msg.as_string())
           success_count += 1
 
-          # NAYA: Progress update karna
           progress = (index + 1) / total_emails
           progress_bar.progress(progress)
 
-          # NAYA: Delay logic (Aakhri email ke baad wait nahi karna hai)
           if index < total_emails - 1:
-            # 6 se 8 seconds ke beech koi bhi random number lega
             delay_seconds = random.randint(6, 8)
-
-            # NAYA: Screen par countdown jaisa dikhana
             for remaining in range(delay_seconds, 0, -1):
               status_text.info(
                   f"✅ {rcv_email} को भेज दिया। स्पैम से बचने के लिए अगले ईमेल"
@@ -197,7 +193,6 @@ if send_button:
 
         server.quit()
 
-        # Kaam pura hone par progress bar hata dena aur final success dikhana
         time.sleep(1)
         status_text.empty()
         progress_bar.empty()
