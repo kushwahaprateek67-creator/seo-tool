@@ -1,10 +1,8 @@
-from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import random
 import smtplib
 import time
-from zoneinfo import ZoneInfo
 import streamlit as st
 
 # Apna fixed password yahan set karein
@@ -75,50 +73,10 @@ st.markdown(
 # ----------------- फ्रेम के अंदर का कंटेंट -----------------
 
 st.markdown(
-    "<h1 style='text-align: center;'>✉️ Bulk Email Tool (USA Live Time"
-    " Target)</h1>",
+    "<h1 style='text-align: center;'>✉️ Bulk Email Tool</h1>",
     unsafe_allow_html=True,
 )
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
-
-# 🇺🇸 City Target Selector
-st.markdown(
-    "<h3 style='text-align: center;'>🎯 Target USA City & Live Clock</h3>",
-    unsafe_allow_html=True,
-)
-
-target_city = st.selectbox(
-    "Jis city ke time zone ko dekhna/target karna hai, use chunein:",
-    [
-        "New York (Eastern Time - EST/EDT)",
-        "Los Angeles (Pacific Time - PST/PDT)",
-        "Chicago (Central Time - CST/CDT)",
-        "Denver (Mountain Time - MST/MDT)",
-    ],
-)
-
-tz_mapping = {
-    "New York (Eastern Time - EST/EDT)": "America/New_York",
-    "Los Angeles (Pacific Time - PST/PDT)": "America/Los_Angeles",
-    "Chicago (Central Time - CST/CDT)": "America/Chicago",
-    "Denver (Mountain Time - MST/MDT)": "America/Denver",
-}
-selected_tz_code = tz_mapping[target_city]
-
-# Python Live Running Clock Display Box
-current_us_time = datetime.now(ZoneInfo(selected_tz_code)).strftime(
-    "%I:%M:%S %p (%d %b %Y)"
-)
-
-st.markdown(
-    f"""
-    <div style="background-color: #000000; border: 2px solid #00bfff; border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0px 0px 15px rgba(0, 191, 255, 0.3);">
-        <p style="color: #00bfff; margin: 0; font-size: 15px;">Live Running Time in {target_city}</p>
-        <h2 style="color: white; margin: 10px 0 0 0; font-size: 26px;">{current_us_time}</h2>
-    </div>
-""",
-    unsafe_allow_html=True,
-)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -136,7 +94,7 @@ with col1:
 
 # दूसरा हिस्सा - ईमेल मैसेज और डेटा
 with col2:
-  st.markdown(f"### 2. संदेश और डेटा ({target_city.split(' ')[0]})")
+  st.markdown("### 2. संदेश और डेटा")
   subject_line = st.text_input("Subject Line", placeholder="ईमेल का विषय")
   email_template = st.text_area(
       "Email Template", height=110, placeholder="अपना मैसेज यहाँ लिखें..."
@@ -218,7 +176,3 @@ if send_button:
 
       except Exception as e:
         st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
-
-# Automatically rerun every 1 second to keep the live clock ticking smoothly
-time.sleep(1)
-st.rerun()
