@@ -4,6 +4,7 @@ from email.mime.text import MIMEText
 import random
 import smtplib
 import time
+from zoneinfo import ZoneInfo
 import streamlit as st
 
 # Apna fixed password yahan set karein
@@ -24,43 +25,34 @@ else:
 # पेज सेटिंग
 st.set_page_config(page_title="Bulk Email Tool", layout="centered")
 
-# पूरे ऐप का CSS डिज़ाइन और Live Clock JavaScript
+# पूरे ऐप का CSS डिज़ाइन
 st.markdown(
     """
     <style>
-    /* 1. स्क्रीन का बाहरी हिस्सा (पूरा ब्लैक) */
     .stApp, .stApp > header {
         background-color: #000000 !important; 
     }
-    
-    /* 2. आपका मेन फ्रेम (जिसके अंदर सब कुछ रहेगा) */
     .block-container {
-        background-color: #001122 !important; /* फ्रेम के अंदर डार्क ब्लू */
-        border: 3px solid #00bfff !important; /* चारो तरफ से नियॉन ब्लू बॉर्डर */
-        border-radius: 20px !important; /* गोल किनारे */
-        box-shadow: 0px 0px 30px rgba(0, 191, 255, 0.5) !important; /* चमकती हुई शैडो */
-        padding: 40px 30px !important; /* फ्रेम के अंदर की जगह */
-        margin-top: 40px !important; /* ऊपर से गैप */
-        margin-bottom: 40px !important; /* नीचे से गैप */
-        max-width: 900px !important; /* फ्रेम की चौड़ाई फिक्स कर दी */
+        background-color: #001122 !important;
+        border: 3px solid #00bfff !important;
+        border-radius: 20px !important;
+        box-shadow: 0px 0px 30px rgba(0, 191, 255, 0.5) !important;
+        padding: 40px 30px !important;
+        margin-top: 40px !important;
+        margin-bottom: 40px !important;
+        max-width: 900px !important;
     }
-    
-    /* 3. टेक्स्ट और हेडर्स का रंग */
     h1, h2, h3, label p, .stMarkdown p {
         font-weight: 800 !important;
         color: #00bfff !important; 
         font-size: 16px !important;
     }
-
-    /* 4. इनपुट बॉक्स का डिज़ाइन */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
         background-color: #000000 !important; 
         color: #00bfff !important; 
         border: 1px solid #0066ff !important; 
         border-radius: 8px !important;
     }
-
-    /* 5. सेंड बटन का डिज़ाइन */
     .stButton>button {
         background-color: #0044cc !important;
         color: white !important;
@@ -70,29 +62,12 @@ st.markdown(
         transition: 0.3s;
         height: 50px;
     }
-    
     .stButton>button:hover {
         background-color: #00bfff !important;
         color: black !important;
         box-shadow: 0px 0px 15px #00bfff;
     }
     </style>
-
-    <!-- 🇺🇸 Single City Live Running Clock Script -->
-    <script>
-    function updateClock() {
-        const selectedZone = document.getElementById('target-city-tz');
-        if (!selectedZone) return;
-        const options = { timeZone: selectedZone.value, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, month: 'short', day: 'numeric', year: 'numeric' };
-        const now = new Date();
-        const clockElem = document.getElementById('single-clock');
-        if (clockElem) {
-            clockElem.innerText = now.toLocaleString('en-US', options);
-        }
-    }
-    setInterval(updateClock, 1000);
-    window.onload = updateClock;
-    </script>
 """,
     unsafe_allow_html=True,
 )
@@ -106,7 +81,7 @@ st.markdown(
 )
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
-# 🇺🇸 City Target Selector & Live Time Box
+# 🇺🇸 City Target Selector
 st.markdown(
     "<h3 style='text-align: center;'>🎯 Target USA City & Live Clock</h3>",
     unsafe_allow_html=True,
@@ -130,18 +105,18 @@ tz_mapping = {
 }
 selected_tz_code = tz_mapping[target_city]
 
-# Hidden input to pass selected timezone to Javascript clock
-st.markdown(
-    f'<input type="hidden" id="target-city-tz" value="{selected_tz_code}">',
-    unsafe_allow_html=True,
-)
+# Live Clock Display Placeholder (Python based)
+clock_placeholder = st.empty()
 
-# Live Running Clock Display Box
-st.markdown(
+# Current time fetch karke turant dikhana
+current_us_time = datetime.now(ZoneInfo(selected_tz_code)).strftime(
+    "%I:%M:%S %p (%d %b %Y)"
+)
+clock_placeholder.markdown(
     f"""
     <div style="background-color: #000000; border: 2px solid #00bfff; border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0px 0px 15px rgba(0, 191, 255, 0.3);">
         <p style="color: #00bfff; margin: 0; font-size: 15px;">Live Time in {target_city}</p>
-        <h2 id="single-clock" style="color: white; margin: 10px 0 0 0; font-size: 26px;">Loading...</h2>
+        <h2 style="color: white; margin: 10px 0 0 0; font-size: 26px;">{current_us_time}</h2>
     </div>
 """,
     unsafe_allow_html=True,
@@ -201,7 +176,6 @@ if send_button:
         server.login(gmail_id, app_password)
 
         success_count = 0
-
         progress_bar = st.progress(0)
         status_text = st.empty()
 
@@ -234,7 +208,6 @@ if send_button:
             )
 
         server.quit()
-
         time.sleep(1)
         status_text.empty()
         progress_bar.empty()
