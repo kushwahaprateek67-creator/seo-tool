@@ -1,329 +1,212 @@
+from datetime import datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import random
+import smtplib
+import time  # NAYA: Time delay ke liye
+import pytz  # NAYA: Timezone handle karne ke liye
 import streamlit as st
 
-import smtplib
-
-from email.mime.text import MIMEText
-
-from email.mime.multipart import MIMEMultipart
-
-import time      # NAYA: Time delay ke liye
-
-import random    # NAYA: Random time generate karne ke liye
-
-
-
 # Password System (Jo sahi password dalne par gayab ho jayega)
-
 login_box = st.empty()
 
+user_password = login_box.text_input(
+    "Tool open karne ke liye password dalein:", type="password"
+)
 
-
-user_password = login_box.text_input("Tool open karne ke liye password dalein:", type="password")
-
-
-
-if user_password != st.secrets["my_password"]:
-
-    st.warning("Kripya sahi password enter karein.")
-
-    st.stop()
-
+if user_password != st.secrets[Prateek@2026]:
+  st.warning("Kripya sahi password enter karein.")
+  st.stop()
 else:
-
-    login_box.empty() # Password sahi hone par dabbe ko screen se hata dega
-
-
+  login_box.empty()  # Password sahi hone par dabbe ko screen se hata dega
 
 # पेज सेटिंग
-
 st.set_page_config(page_title="Bulk Email Tool", layout="centered")
 
-
-
 # पूरे ऐप को एक "मेन फ्रेम" में फिक्स करने के लिए CSS
-
-st.markdown("""
-
+st.markdown(
+    """
     <style>
-
     /* 1. स्क्रीन का बाहरी हिस्सा (पूरा ब्लैक) */
-
     .stApp, .stApp > header {
-
         background-color: #000000 !important; 
-
     }
-
     
-
     /* 2. आपका मेन फ्रेम (जिसके अंदर सब कुछ रहेगा) */
-
     .block-container {
-
         background-color: #001122 !important; /* फ्रेम के अंदर डार्क ब्लू */
-
         border: 3px solid #00bfff !important; /* चारो तरफ से नियॉन ब्लू बॉर्डर */
-
         border-radius: 20px !important; /* गोल किनारे */
-
         box-shadow: 0px 0px 30px rgba(0, 191, 255, 0.5) !important; /* चमकती हुई शैडो */
-
         padding: 40px 30px !important; /* फ्रेम के अंदर की जगह */
-
         margin-top: 40px !important; /* ऊपर से गैप */
-
         margin-bottom: 40px !important; /* नीचे से गैप */
-
         max-width: 900px !important; /* फ्रेम की चौड़ाई फिक्स कर दी */
-
     }
-
     
-
     /* 3. टेक्स्ट और हेडर्स का रंग */
-
     h1, h2, h3, label p, .stMarkdown p {
-
         font-weight: 800 !important;
-
         color: #00bfff !important; 
-
         font-size: 16px !important;
-
     }
-
-
 
     /* 4. इनपुट बॉक्स का डिज़ाइन */
-
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-
         background-color: #000000 !important; 
-
         color: #00bfff !important; 
-
         border: 1px solid #0066ff !important; 
-
         border-radius: 8px !important;
-
     }
-
-
 
     /* 5. सेंड बटन का डिज़ाइन */
-
     .stButton>button {
-
         background-color: #0044cc !important;
-
         color: white !important;
-
         border: 2px solid #00bfff !important;
-
         font-weight: bold;
-
         border-radius: 8px;
-
         transition: 0.3s;
-
         height: 50px;
-
     }
-
     
-
     .stButton>button:hover {
-
         background-color: #00bfff !important;
-
         color: black !important;
-
         box-shadow: 0px 0px 15px #00bfff;
-
     }
-
     </style>
-
-""", unsafe_allow_html=True)
-
-
+""",
+    unsafe_allow_html=True,
+)
 
 # ----------------- फ्रेम के अंदर का कंटेंट -----------------
 
-
-
-st.markdown("<h1 style='text-align: center;'>✉️ Bulk Email Tool</h1>", unsafe_allow_html=True)
-
+st.markdown(
+    "<h1 style='text-align: center;'>✉️ Bulk Email Tool</h1>",
+    unsafe_allow_html=True,
+)
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
+# 🇺🇸 USA Live Time Box Widget
+ny_tz = pytz.timezone("America/New_York")
+la_tz = pytz.timezone("America/Los_Angeles")
 
+current_ny = datetime.now(ny_tz).strftime("%I:%M:%S %p (%d %b)")
+current_la = datetime.now(la_tz).strftime("%I:%M:%S %p (%d %b)")
 
-# लेआउट को दो भागों में बाँटना (ताकि फॉर्म आमने-सामने रहे)
-
-col1, col2 = st.columns(2, gap="large")
-
-
-
-# पहला हिस्सा - अकाउंट की जानकारी
-
-with col1:
-
-    st.markdown("### 1. अकाउंट डिटेल्स")
-
-    sender_name = st.text_input("Sender Name", placeholder="अपना नाम लिखें")
-
-    gmail_id = st.text_input("Gmail ID", placeholder="your-email@gmail.com")
-
-    app_password = st.text_input("App Password", type="password", placeholder="16 अंकों का पासवर्ड")
-
-
-
-# दूसरा हिस्सा - ईमेल मैसेज और डेटा
-
-with col2:
-
-    st.markdown("### 2. संदेश और डेटा")
-
-    subject_line = st.text_input("Subject Line", placeholder="ईमेल का विषय")
-
-    email_template = st.text_area("Email Template", height=110, placeholder="अपना मैसेज यहाँ लिखें...")
-
-    data = st.text_area("Data (Email IDs - हर लाइन में एक)", height=110, placeholder="example1@gmail.com\nexample2@gmail.com")
-
-
+st.markdown("<h3 style='text-align: center;'>🇺🇸 USA Current Live Time</h3>", unsafe_allow_html=True)
+t_col1, t_col2 = st.columns(2)
+with t_col1:
+  st.metric(label="New York (EST/EDT)", value=current_ny)
+with t_col2:
+  st.metric(label="Los Angeles (PST/PDT)", value=current_la)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
+# लेआउट को दो भागों में बाँटना (ताकि फॉर्म आमने-सामने रहे)
+col1, col2 = st.columns(2, gap="large")
 
+# पहला हिस्सा - अकाउंट की जानकारी
+with col1:
+  st.markdown("### 1. अकाउंट डिटेल्स")
+  sender_name = st.text_input("Sender Name", placeholder="अपना नाम लिखें")
+  gmail_id = st.text_input("Gmail ID", placeholder="your-email@gmail.com")
+  app_password = st.text_input(
+      "App Password", type="password", placeholder="16 अंकों का पासवर्ड"
+  )
+
+# दूसरा हिस्सा - ईमेल मैसेज और डेटा
+with col2:
+  st.markdown("### 2. संदेश और डेटा")
+  subject_line = st.text_input("Subject Line", placeholder="ईमेल का विषय")
+  email_template = st.text_area(
+      "Email Template", height=110, placeholder="अपना मैसेज यहाँ लिखें..."
+  )
+  data = st.text_area(
+      "Data (Email IDs - हर लाइन में एक)",
+      height=110,
+      placeholder="example1@gmail.com\nexample2@gmail.com",
+  )
+
+st.markdown("<br>", unsafe_allow_html=True)
 
 # सेंड बटन को बीच में करने के लिए
-
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
-
 with col_b2:
-
-    send_button = st.button("🚀 Send Mail", use_container_width=True)
-
-
+  send_button = st.button("🚀 Send Mail", use_container_width=True)
 
 # ईमेल भेजने का लॉजिक
-
 if send_button:
+  if not sender_name or not gmail_id or not app_password or not data:
+    st.error(
+        "⚠️ कृपया सभी ज़रूरी जानकारी (Sender Name, Gmail ID, Password और Data)"
+        " भरें!"
+    )
+  else:
+    emails_list = [
+        email.strip() for email in data.split("\n") if email.strip()
+    ]
+    total_emails = len(emails_list)
 
-    if not sender_name or not gmail_id or not app_password or not data:
+    with st.spinner("ईमेल सर्वर से कनेक्ट हो रहा है..."):
+      try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(gmail_id, app_password)
 
-        st.error("⚠️ कृपया सभी ज़रूरी जानकारी (Sender Name, Gmail ID, Password और Data) भरें!")
+        success_count = 0
 
-    else:
+        # NAYA: Progress bar aur status message set karna
+        progress_bar = st.progress(0)
+        status_text = st.empty()
 
-        emails_list = [email.strip() for email in data.split('\n') if email.strip()]
+        for index, rcv_email in enumerate(emails_list):
+          personalized_body = email_template.replace("{sender}", sender_name)
 
-        total_emails = len(emails_list)
+          msg = MIMEMultipart()
+          msg["From"] = f"{sender_name} <{gmail_id}>"
+          msg["To"] = rcv_email
+          msg["Subject"] = subject_line
+          msg.attach(MIMEText(personalized_body, "plain"))
 
-        
+          # Email bhejna
+          server.sendmail(gmail_id, rcv_email, msg.as_string())
+          success_count += 1
 
-        with st.spinner("ईमेल सर्वर से कनेक्ट हो रहा है..."):
+          # NAYA: Progress update karna
+          progress = (index + 1) / total_emails
+          progress_bar.progress(progress)
 
-            try:
+          # NAYA: Delay logic (Aakhri email ke baad wait nahi karna hai)
+          if index < total_emails - 1:
+            # 6 se 8 seconds ke beech koi bhi random number lega
+            delay_seconds = random.randint(6, 8)
 
-                server = smtplib.SMTP('smtp.gmail.com', 587)
+            # NAYA: Screen par countdown jaisa dikhana
+            for remaining in range(delay_seconds, 0, -1):
+              status_text.info(
+                  f"✅ {rcv_email} को भेज दिया। स्पैम से बचने के लिए अगले ईमेल"
+                  f" में {remaining} सेकंड का इंतज़ार..."
+              )
+              time.sleep(1)
+          else:
+            status_text.success(
+                f"✅ {rcv_email} को भेज दिया। सभी ईमेल पूरे हुए!"
+            )
 
-                server.starttls()
+        server.quit()
 
-                server.login(gmail_id, app_password)
+        # Kaam pura hone par progress bar hata dena aur final success dikhana
+        time.sleep(1)
+        status_text.empty()
+        progress_bar.empty()
 
-                
+        st.balloons()
+        st.success(
+            f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक (एंटी-स्पैम डिले के"
+            " साथ) भेज दिए गए!"
+        )
 
-                success_count = 0
-
-                
-
-                # NAYA: Progress bar aur status message set karna
-
-                progress_bar = st.progress(0)
-
-                status_text = st.empty()
-
-                
-
-                for index, rcv_email in enumerate(emails_list):
-
-                    personalized_body = email_template.replace("{sender}", sender_name)
-
-                    
-
-                    msg = MIMEMultipart()
-
-                    msg['From'] = f"{sender_name} <{gmail_id}>"
-
-                    msg['To'] = rcv_email
-
-                    msg['Subject'] = subject_line
-
-                    msg.attach(MIMEText(personalized_body, 'plain'))
-
-                    
-
-                    # Email bhejna
-
-                    server.sendmail(gmail_id, rcv_email, msg.as_string())
-
-                    success_count += 1
-
-                    
-
-                    # NAYA: Progress update karna
-
-                    progress = (index + 1) / total_emails
-
-                    progress_bar.progress(progress)
-
-                    
-
-                    # NAYA: Delay logic (Aakhri email ke baad wait nahi karna hai)
-
-                    if index < total_emails - 1:
-
-                        # 25 se 45 seconds ke beech koi bhi random number lega
-
-                        delay_seconds = random.randint(6, 8) 
-
-                        
-
-                        # NAYA: Screen par countdown jaisa dikhana
-
-                        for remaining in range(delay_seconds, 0, -1):
-
-                            status_text.info(f"✅ {rcv_email} को भेज दिया। स्पैम से बचने के लिए अगले ईमेल में {remaining} सेकंड का इंतज़ार...")
-
-                            time.sleep(1)
-
-                    else:
-
-                        status_text.success(f"✅ {rcv_email} को भेज दिया। सभी ईमेल पूरे हुए!")
-
-                        
-
-                server.quit()
-
-                
-
-                # Kaam pura hone par progress bar hata dena aur final success dikhana
-
-                time.sleep(1)
-
-                status_text.empty()
-
-                progress_bar.empty()
-
-                
-
-                st.balloons() 
-
-                st.success(f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक (एंटी-स्पैम डिले के साथ) भेज दिए गए!")
-
-                
-
-            except Exception as e:
-
-                st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
+      except Exception as e:
+        st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
