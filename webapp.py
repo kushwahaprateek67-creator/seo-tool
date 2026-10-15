@@ -7,18 +7,21 @@ import time
 from zoneinfo import ZoneInfo
 import streamlit as st
 
-# Password System (Jo sahi password dalne par gayab ho jayega)
+# Yahan seedha apna password likh dein (jaise 'Prateek@2026')
+MY_FIXED_PASSWORD = "Prateek@2026"
+
+# Password System
 login_box = st.empty()
 
 user_password = login_box.text_input(
-    "Tool open karne ke liye password dalein:", type="Prateek@2026"
+    "Tool open karne ke liye password dalein:", type="password"
 )
 
-if user_password != st.secrets["my_password"]:
+if user_password != MY_FIXED_PASSWORD:
   st.warning("Kripya sahi password enter karein.")
   st.stop()
 else:
-  login_box.empty()  # Password sahi hone par dabbe को screen se hata dega
+  login_box.empty()
 
 # पेज सेटिंग
 st.set_page_config(page_title="Bulk Email Tool", layout="centered")
@@ -88,7 +91,7 @@ st.markdown(
 )
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
-# 🇺🇸 USA Live Time Box Widget (Using built-in zoneinfo)
+# 🇺🇸 USA Live Time Box Widget
 ny_tz = ZoneInfo("America/New_York")
 la_tz = ZoneInfo("America/Los_Angeles")
 
@@ -107,7 +110,7 @@ with t_col2:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# लेआउट को दो भागों में बाँटना (ताकि फॉर्म आमने-सामने रहे)
+# लेआउट को दो भागों में बाँटना
 col1, col2 = st.columns(2, gap="large")
 
 # पहला हिस्सा - अकाउंट की जानकारी
