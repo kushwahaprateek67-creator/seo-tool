@@ -24,62 +24,61 @@ if user_password != MY_FIXED_PASSWORD:
 else:
   login_box.empty()
 
-# पेज सेटिंग (डैशबोर्ड के लिए वाइड लेआउट)
-st.set_page_config(page_title="Outlook Email Dashboard", layout="wide")
+# पेज सेटिंग (वाइड लेआउट)
+st.set_page_config(page_title="Outlook 2021 Modern Dashboard", layout="wide")
 
-# पूरे ऐप का शानदार CSS डिज़ाइन
+# आउटलुक 2021 मॉडर्न फ्लैट और प्रीमियम CSS डिज़ाइन
 st.markdown(
     """
     <style>
     .stApp, .stApp > header {
-        background-color: #0b0f19 !important; 
+        background-color: #121212 !important; 
     }
     .block-container {
-        background-color: #111827 !important;
-        border: 2px solid #00bfff !important;
-        border-radius: 16px !important;
-        box-shadow: 0px 0px 25px rgba(0, 191, 255, 0.3) !important;
-        padding: 30px 30px !important;
-        max-width: 1200px !important;
+        background-color: #1e1e1e !important;
+        border: 1px solid #2d2d2d !important;
+        border-radius: 14px !important;
+        box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.5) !important;
+        padding: 25px 30px !important;
+        max-width: 1350px !important;
     }
     h1, h2, h3, label p, .stMarkdown p {
-        font-weight: 700 !important;
-        color: #00bfff !important; 
+        font-weight: 600 !important;
+        color: #0078d4 !important; 
     }
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        background-color: #030712 !important; 
-        color: #00bfff !important; 
-        border: 1px solid #0066ff !important; 
+        background-color: #2d2d2d !important; 
+        color: #ffffff !important; 
+        border: 1px solid #3f3f3f !important; 
         border-radius: 8px !important;
     }
     .stButton>button {
-        background-color: #0044cc !important;
+        background-color: #0078d4 !important;
         color: white !important;
-        border: 2px solid #00bfff !important;
-        font-weight: bold;
+        border: none !important;
+        font-weight: 600;
         border-radius: 8px;
-        transition: 0.3s;
-        height: 45px;
+        transition: 0.2s;
+        height: 42px;
     }
     .stButton>button:hover {
-        background-color: #00bfff !important;
-        color: black !important;
-        box-shadow: 0px 0px 12px #00bfff;
+        background-color: #106ebe !important;
+        box-shadow: 0px 0px 8px rgba(0, 120, 212, 0.6);
     }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# शीर्षक
+# ऐप हेडर (मॉडर्न लुक)
 st.markdown(
-    "<h1 style='text-align: center;'>🌐 Professional Outlook Email Dashboard</h1>",
+    "<h1 style='text-align: center; font-size: 28px; color: #0078d4;'>📧 Outlook 2021 Modern Dashboard</h1>",
     unsafe_allow_html=True,
 )
-st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border: 1px solid #2d2d2d; margin: 15px 0;'>", unsafe_allow_html=True)
 
 # मुख्य टैब्स
-tab1, tab2 = st.tabs(["📤 Send Bulk Campaign", "📥 Outlook Split-View Dashboard"])
+tab1, tab2 = st.tabs(["📤 Bulk Email Campaign", "📥 Modern Outlook Mailbox"])
 
 # ================= TAB 1: BULK EMAIL SENDING =================
 with tab1:
@@ -94,25 +93,25 @@ with tab1:
         "App Password",
         type="password",
         placeholder="16 अंकों का पासवर्ड",
-        key="send_pass_main",
+        key="send_pass_mod",
     )
 
   with col2:
     st.markdown("### 2. Campaign Template & List")
     subject_line = st.text_input("Subject Line", placeholder="ईमेल का विषय")
     email_template = st.text_area(
-        "Email Template", height=110, placeholder="अपना मैसेज यहाँ लिखें..."
+        "Email Template", height=100, placeholder="अपना मैसेज यहाँ लिखें..."
     )
     data = st.text_area(
         "Data (Email IDs - हर लाइन में एक)",
-        height=110,
+        height=100,
         placeholder="example1@gmail.com\nexample2@gmail.com",
     )
 
   st.markdown("<br>", unsafe_allow_html=True)
   col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
   with col_b2:
-    send_button = st.button("🚀 Start Bulk Email Campaign", use_container_width=True)
+    send_button = st.button("🚀 Start Bulk Campaign", use_container_width=True)
 
   if send_button:
     if not sender_name or not gmail_id or not app_password or not data:
@@ -178,32 +177,32 @@ with tab1:
           st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
 
 
-# ================= TAB 2: OUTLOOK SPLIT-VIEW DASHBOARD =================
+# ================= TAB 2: OUTLOOK 2021 MODERN 3-PANEL MAILBOX =================
 with tab2:
   st.markdown("<br>", unsafe_allow_html=True)
 
-  # क्रेडेंशियल्स बार
-  cred_col1, cred_col2, cred_col3 = st.columns([1, 1, 1], gap="medium")
-  with cred_col1:
+  # टॉप लॉगिन बार
+  top_c1, top_c2, top_c3 = st.columns([1, 1, 1], gap="medium")
+  with top_c1:
     inbox_email_id = st.text_input(
-        "Dashboard Gmail ID", placeholder="your-email@gmail.com", key="dash_email"
+        "Mailbox Gmail ID", placeholder="your-email@gmail.com", key="mod_email"
     )
-  with cred_col2:
+  with top_c2:
     inbox_app_password = st.text_input(
         "App Password",
         type="password",
         placeholder="16 अंकों का पासवर्ड",
-        key="dash_pass",
+        key="mod_pass",
     )
-  with cred_col3:
+  with top_c3:
     st.markdown("<br>", unsafe_allow_html=True)
-    fetch_button = st.button("🔄 Sync & Load Inbox", use_container_width=True)
+    fetch_mod_btn = st.button("🔄 Sync Modern Mailbox", use_container_width=True)
 
-  if fetch_button:
+  if fetch_mod_btn:
     if not inbox_email_id or not inbox_app_password:
       st.error("⚠️ कृपया अपनी Gmail ID और App Password दर्ज करें!")
     else:
-      with st.spinner("आउटलुक इनबॉक्स सिंक हो रहा है..."):
+      with st.spinner("मेलबॉक्स सिंक हो रहा है..."):
         try:
           mail = imaplib.IMAP4_SSL("imap.gmail.com")
           mail.login(inbox_email_id, inbox_app_password)
@@ -212,13 +211,13 @@ with tab2:
           status, messages = mail.search(None, "ALL")
 
           if status != "OK":
-            st.error("❌ इनबॉक्स फेच करने में असफल।")
+            st.error("❌ मेलबॉक्स फेच करने में असफल।")
           else:
             email_ids = messages[0].split()
-            latest_email_ids = email_ids[-15:]  # आखिरी 15 मेल्स
+            latest_email_ids = email_ids[-20:]  # आखिरी 20 मेल्स
             latest_email_ids.reverse()
 
-            dashboard_data = []
+            mod_mailbox_data = []
 
             for i, num in enumerate(latest_email_ids):
               status, data = mail.fetch(num, "(RFC822)")
@@ -249,87 +248,98 @@ with tab2:
 
                   is_reply = "re:" in subject.lower() or "original message" in body.lower()
 
-                  dashboard_data.append({
+                  mod_mailbox_data.append({
                       "Index": i + 1,
                       "Sender": sender,
                       "Subject": subject,
                       "Full_Body": body if body else "[No text body]",
-                      "Status": "💬 Reply Received" if is_reply else "📬 Normal Mail"
+                      "Type": "💬 Reply" if is_reply else "📥 Mail"
                   })
 
-            if dashboard_data:
-              st.session_state["outlook_dash_df"] = dashboard_data
+            if mod_mailbox_data:
+              st.session_state["mod_mailbox_df"] = mod_mailbox_data
 
           mail.logout()
 
         except Exception as e:
-          st.error(f"❌ इनबॉक्स लोड करने में एरर आया: {e}")
+          st.error(f"❌ मेलबॉक्स लोड करने में एरर आया: {e}")
 
-  # अगर डैशबोर्ड डेटा मौजूद है, तो स्प्लिट-व्यू लेआउट दिखाएं
-  if "outlook_dash_df" in st.session_state and st.session_state["outlook_dash_df"]:
-    st.markdown("<hr style='border: 1px solid #003366;'>", unsafe_allow_html=True)
-    
-    # स्प्लिट स्क्रीन: बायां हिस्सा (List), दायां हिस्सा (Reading Pane & Forward Panel)
-    list_col, read_col = st.columns([1, 1.2], gap="large")
+  # अगर डेटा मौजूद है, तो आउटलुक 2021 जैसा 3-पैनल लेआउट दिखाएं
+  if "mod_mailbox_df" in st.session_state and st.session_state["mod_mailbox_df"]:
+    st.markdown("<hr style='border: 1px solid #2d2d2d; margin: 15px 0;'>", unsafe_allow_html=True)
 
-    with list_col:
-      st.markdown("#### 📂 Inbox Messages")
+    # 3-पैनल कॉलम: नेविगेशन, लिस्ट और रीडिंग पेन
+    panel1, panel2, panel3 = st.columns([0.8, 1.2, 1.5], gap="medium")
+
+    # --- PANEL 1: Modern Navigation Folders ---
+    with panel1:
+      st.markdown("##### 📁 Folders")
+      st.markdown("🔹 **Favorites**")
+      st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;📥 **Inbox**")
+      st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;📤 **Sent Items**")
+      st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;🗑️ **Deleted**")
+      st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;📝 **Drafts**")
+      st.markdown("---")
+      st.success("✨ Outlook 2021 UI Active")
+
+    # --- PANEL 2: Modern Message List ---
+    with panel2:
+      st.markdown("##### 📋 Messages")
       mail_options = {
-          f"{item['Index']} | {item['Status']} | {item['Subject'][:22]}...": item["Index"]
-          for item in st.session_state["outlook_dash_df"]
+          f"{item['Index']}. [{item['Type']}] {item['Subject'][:18]}...": item["Index"]
+          for item in st.session_state["mod_mailbox_df"]
       }
 
       selected_mail_label = st.radio(
-          "मेल्स सूची:",
+          "चुनें:",
           options=list(mail_options.keys()),
           label_visibility="collapsed",
       )
 
       selected_index = mail_options[selected_mail_label]
 
-    with read_col:
-      st.markdown("#### 📖 Reading & Forward Pane")
+    # --- PANEL 3: Modern Reading & Forward Pane ---
+    with panel3:
+      st.markdown("##### 📖 Reading & Forward Pane")
       selected_mail = next(
           item
-          for item in st.session_state["outlook_dash_df"]
+          for item in st.session_state["mod_mailbox_df"]
           if item["Index"] == selected_index
       )
 
-      st.markdown(f"**Type:** `{selected_mail['Status']}`")
       st.markdown(f"**From:** `{selected_mail['Sender']}`")
       st.markdown(f"**Subject:** {selected_mail['Subject']}")
       st.markdown("---")
-      
+
       st.text_area(
-          "Email Content",
+          "Reading Area",
           value=selected_mail["Full_Body"],
-          height=180,
-          key="dash_reading_pane",
+          height=160,
+          key="mod_reading_box",
           label_visibility="collapsed",
       )
 
       st.markdown("<br>", unsafe_allow_html=True)
-      st.markdown("#### 🔄 Forward / Reply Options")
+      st.markdown("##### 🔄 Forward to Someone")
 
-      # एक्शन और फॉरवर्डिंग फील्ड्स
       forward_target = st.text_input(
-          "Send/Forward To (Other Person's Gmail)", 
-          placeholder="target-email@gmail.com",
-          key="dash_forward_target"
+          "Forward To (Receiver Gmail ID)", 
+          placeholder="recipient@gmail.com",
+          key="mod_forward_input"
       )
 
       custom_note = st.text_area(
-          "Add Custom Note / Message",
-          placeholder="इसके साथ कोई नोट जोड़ना चाहें...",
+          "Note / Message",
+          placeholder="साथ में कोई नोट जोड़ना चाहें...",
           height=60,
-          key="dash_custom_note",
+          key="mod_note_box",
       )
 
-      if st.button("🚀 Send / Forward Now", use_container_width=True):
+      if st.button("🚀 Forward Mail Now", use_container_width=True):
         if not inbox_email_id or not inbox_app_password:
           st.error("⚠️ कृपया ऊपर अपनी Gmail ID और App Password दर्ज करें!")
         elif not forward_target:
-          st.error("⚠️ कृपया उस व्यक्ति की Gmail ID दर्ज करें जिसे भेजना है!")
+          st.error("⚠️ कृपया पाने वाले की Gmail ID दर्ज करें!")
         else:
           try:
             server = smtplib.SMTP("smtp.gmail.com", 587)
@@ -339,7 +349,22 @@ with tab2:
             msg = MIMEMultipart()
             msg["From"] = inbox_email_id
             msg["To"] = forward_target
-            msg["Subject"] = f"Fwd / Reply: {selected_mail['Subject']}"
+            msg["Subject"] = f"Fwd: {selected_mail['Subject']}"
 
             forward_body = (
-                f
+                f"{custom_note}\n\n---------- Forwarded via Outlook 2021 ----------\n"
+                f"From: {selected_mail['Sender']}\n"
+                f"Subject: {selected_mail['Subject']}\n\n"
+                f"{selected_mail['Full_Body']}"
+            )
+
+            msg.attach(MIMEText(forward_body, "plain"))
+            server.sendmail(inbox_email_id, forward_target, msg.as_string())
+            server.quit()
+
+            st.success(
+                f"✅ ईमेल सफलतापूर्वक **{forward_target}** को भेज दिया गया है!"
+            )
+
+          except Exception as e:
+            st.error(f"❌ भेजने में एरर आया: {e}")
