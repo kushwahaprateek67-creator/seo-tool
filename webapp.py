@@ -25,7 +25,7 @@ else:
   login_box.empty()
 
 # पेज सेटिंग (वाइड लेआउट)
-st.set_page_config(page_title="Clean Outlook 2021 Dashboard", layout="wide")
+st.set_page_config(page_title="Complete Outlook 2021 Dashboard", layout="wide")
 
 # आउटलुक 2021 मॉडर्न CSS डिज़ाइन
 st.markdown(
@@ -72,13 +72,13 @@ st.markdown(
 
 # ऐप हेडर
 st.markdown(
-    "<h1 style='text-align: center; font-size: 28px; color: #0078d4;'>📧 Clean Outlook 2021 Dashboard (Replies Only)</h1>",
+    "<h1 style='text-align: center; font-size: 28px; color: #0078d4;'>📧 Complete Outlook 2021 Dashboard (All Messages)</h1>",
     unsafe_allow_html=True,
 )
 st.markdown("<hr style='border: 1px solid #2d2d2d; margin: 15px 0;'>", unsafe_allow_html=True)
 
 # मुख्य टैब्स
-tab1, tab2 = st.tabs(["📤 Bulk Email Campaign", "📥 Clean Inbox & Forward Replies"])
+tab1, tab2 = tab1, tab2 = st.tabs(["📤 Bulk Email Campaign", "📥 All Inbox Messages & Forward"])
 
 # ================= TAB 1: BULK EMAIL SENDING =================
 with tab1:
@@ -177,31 +177,31 @@ with tab1:
           st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
 
 
-# ================= TAB 2: CLEAN OUTLOOK INBOX (FILTERED REPLIES ONLY) =================
+# ================= TAB 2: ALL INBOX MESSAGES (NO FILTER) =================
 with tab2:
   st.markdown("<br>", unsafe_allow_html=True)
 
   top_c1, top_c2, top_c3 = st.columns([1, 1, 1], gap="medium")
   with top_c1:
     inbox_email_id = st.text_input(
-        "Mailbox Gmail ID", placeholder="your-email@gmail.com", key="clean_email"
+        "Mailbox Gmail ID", placeholder="your-email@gmail.com", key="all_email"
     )
   with top_c2:
     inbox_app_password = st.text_input(
         "App Password",
         type="password",
         placeholder="16 अंकों का पासवर्ड",
-        key="clean_pass",
+        key="all_pass",
     )
   with top_c3:
     st.markdown("<br>", unsafe_allow_html=True)
-    fetch_clean_btn = st.button("🔄 Sync & Filter Real Replies", use_container_width=True)
+    fetch_all_btn = st.button("🔄 Sync All Inbox Messages", use_container_width=True)
 
-  if fetch_clean_btn:
+  if fetch_all_btn:
     if not inbox_email_id or not inbox_app_password:
       st.error("⚠️ कृपया अपनी Gmail ID और App Password दर्ज करें!")
     else:
-      with st.spinner("फालतू मेल्स हटाए जा रहे हैं और असली रिप्लाई खोजे जा रहे हैं..."):
+      with st.spinner("इनबॉक्स के सभी मेल्स लोड हो रहे हैं..."):
         try:
           mail = imaplib.IMAP4_SSL("imap.gmail.com")
           mail.login(inbox_email_id, inbox_app_password)
@@ -210,16 +210,15 @@ with tab2:
           status, messages = mail.search(None, "ALL")
 
           if status != "OK":
-            st.error("❌ मेलबॉक्स फेच करने में असफल।")
+            st.error("❌ इनबॉक्स फेच करने में असफल।")
           else:
             email_ids = messages[0].split()
-            latest_email_ids = email_ids[-40:]  # आखिरी 40 मेल्स की जाँच
+            latest_email_ids = email_ids[-30:]  # आखिरी 30 मेल्स
             latest_email_ids.reverse()
 
-            clean_mailbox_data = []
-            count = 1
+            all_mailbox_data = []
 
-            for num in latest_email_ids:
+            for i, num in enumerate(latest_email_ids):
               status, data = mail.fetch(num, "(RFC822)")
               for response_part in data:
                 if isinstance(response_part, tuple):
@@ -246,57 +245,44 @@ with tab2:
                       except:
                         body = payload.decode("latin-1", errors="ignore")
 
-                  # --- फिल्टर लॉजिक (बकवास/डिलिवरी फेलियर मेल्स को बाहर करना) ---
-                  subj_lower = subject.lower()
-                  body_lower = body.lower()
+                  is_reply = "re:" in subject.lower() or "original message" in body.lower()
 
-                  # अगर मेल डिलीवरी फेलियर या ऑटोमैटिक बाउंस है, तो उसे छोड़ दें
-                  if "delivery status notification" in subj_lower or "failure" in subj_lower or "mailer-daemon" in sender.lower():
-                    continue
+                  all_mailbox_data.append({
+                      "Index": i + 1,
+                      "Sender": sender,
+                      "Subject": subject,
+                      "Full_Body": body if body else "[No text body]",
+                      "Type": "💬 Reply" if is_reply else "📥 Mail"
+                  })
 
-                  # हम केवल वही मेल्स रखेंगे जो असली रिप्लाई हैं या जिनमें बातचीत का टेक्स्ट है
-                  is_real_reply = "re:" in subj_lower or "original message" in body_lower or len(body.strip()) > 20
-
-                  if is_real_reply:
-                    clean_mailbox_data.append({
-                        "Index": count,
-                        "Sender": sender,
-                        "Subject": subject,
-                        "Full_Body": body if body else "[No text body]",
-                        "Type": "💬 Reply Received"
-                    })
-                    count += 1
-
-            if clean_mailbox_data:
-              st.session_state["clean_mailbox_df"] = clean_mailbox_data
-              st.success(f"✅ कुल {len(clean_mailbox_data)} असली रिप्लाई/मेल्स मिले हैं!")
-            else:
-              st.warning("⚠️ कोई नया असली रिप्लाई नहीं मिला (सारे फालतू मेल्स हटा दिए गए हैं)।")
+            if all_mailbox_data:
+              st.session_state["all_mailbox_df"] = all_mailbox_data
+              st.success(f"✅ कुल {len(all_mailbox_data)} मेल्स लोड हो चुके हैं!")
 
           mail.logout()
 
         except Exception as e:
           st.error(f"❌ मेलबॉक्स लोड करने में एरर आया: {e}")
 
-  # अगर फिल्टर किया हुआ डेटा मौजूद है, तो लेआउट दिखाएं
-  if "clean_mailbox_df" in st.session_state and st.session_state["clean_mailbox_df"]:
+  # अगर डेटा मौजूद है, तो 3-पैनल लेआउट दिखाएं
+  if "all_mailbox_df" in st.session_state and st.session_state["all_mailbox_df"]:
     st.markdown("<hr style='border: 1px solid #2d2d2d; margin: 15px 0;'>", unsafe_allow_html=True)
 
     panel1, panel2, panel3 = st.columns([0.8, 1.2, 1.5], gap="medium")
 
     with panel1:
       st.markdown("##### 📁 Folders")
-      st.markdown("🔹 **Inbox (Cleaned)**")
-      st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;💬 **Real Replies**")
+      st.markdown("🔹 **Inbox (All Messages)**")
+      st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;📥 **All Mails**")
       st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;📤 **Sent Items**")
       st.markdown("---")
-      st.info("💡 यहाँ सिर्फ आपके काम के असली रिप्लाई दिख रहे हैं।")
+      st.info("💡 यहाँ आपके इनबॉक्स के सभी मेल्स लाइन से दिख रहे हैं।")
 
     with panel2:
-      st.markdown("##### 📋 Clean Message List")
+      st.markdown("##### 📋 Messages List")
       mail_options = {
-          f"{item['Index']}. {item['Subject'][:22]}...": item["Index"]
-          for item in st.session_state["clean_mailbox_df"]
+          f"{item['Index']}. [{item['Type']}] {item['Subject'][:20]}...": item["Index"]
+          for item in st.session_state["all_mailbox_df"]
       }
 
       selected_mail_label = st.radio(
@@ -311,11 +297,11 @@ with tab2:
       st.markdown("##### 📖 Reading & Forward Pane")
       selected_mail = next(
           item
-          for item in st.session_state["clean_mailbox_df"]
+          for item in st.session_state["all_mailbox_df"]
           if item["Index"] == selected_index
       )
 
-      st.markdown(f"**Status:** `{selected_mail['Type']}`")
+      st.markdown(f"**Type:** `{selected_mail['Type']}`")
       st.markdown(f"**From:** `{selected_mail['Sender']}`")
       st.markdown(f"**Subject:** {selected_mail['Subject']}")
       st.markdown("---")
@@ -324,24 +310,24 @@ with tab2:
           "Reading Area",
           value=selected_mail["Full_Body"],
           height=160,
-          key="clean_reading_box",
+          key="all_reading_box",
           label_visibility="collapsed",
       )
 
       st.markdown("<br>", unsafe_allow_html=True)
-      st.markdown("##### 🔄 Forward Reply to Someone")
+      st.markdown("##### 🔄 Forward to Someone")
 
       forward_target = st.text_input(
           "Forward To (Receiver Gmail ID)", 
-          placeholder="target-person@gmail.com",
-          key="clean_forward_input"
+          placeholder="recipient@gmail.com",
+          key="all_forward_input"
       )
 
       custom_note = st.text_area(
           "Note / Message",
-          placeholder="साथ में कुछ लिखना चाहें...",
+          placeholder="साथ में कोई नोट जोड़ना चाहें...",
           height=60,
-          key="clean_note_box",
+          key="all_note_box",
       )
 
       if st.button("🚀 Forward Mail Now", use_container_width=True):
@@ -358,10 +344,10 @@ with tab2:
             msg = MIMEMultipart()
             msg["From"] = inbox_email_id
             msg["To"] = forward_target
-            msg["Subject"] = f"Fwd Reply: {selected_mail['Subject']}"
+            msg["Subject"] = f"Fwd: {selected_mail['Subject']}"
 
             forward_body = (
-                f"{custom_note}\n\n---------- Forwarded Clean Reply ----------\n"
+                f"{custom_note}\n\n---------- Forwarded Message ----------\n"
                 f"From: {selected_mail['Sender']}\n"
                 f"Subject: {selected_mail['Subject']}\n\n"
                 f"{selected_mail['Full_Body']}"
@@ -372,7 +358,7 @@ with tab2:
             server.quit()
 
             st.success(
-                f"✅ यह रिप्लाई सफलतापूर्वक **{forward_target}** को फॉरवर्ड कर दिया गया है!"
+                f"✅ ईमेल सफलतापूर्वक **{forward_target}** को भेज दिया गया है!"
             )
 
           except Exception as e:
