@@ -24,7 +24,7 @@ else:
   login_box.empty()
 
 # पेज सेटिंग
-st.set_page_config(page_title="Bulk Email Tool", layout="centered")
+st.set_page_config(page_title="Bulk Email Tool & Outlook", layout="centered")
 
 # पूरे ऐप का CSS डिज़ाइन
 st.markdown(
@@ -82,7 +82,7 @@ st.markdown(
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
 # टैब्स डिफाइन करना
-tab1, tab2 = st.tabs(["📤 Send Bulk Emails", "📥 Outlook Split-View Inbox"])
+tab1, tab2 = st.tabs(["📤 Send Bulk Emails", "📥 Outlook Inbox & Reply/Forward"])
 
 # ================= TAB 1: EMAIL SENDING LOGIC =================
 with tab1:
@@ -182,10 +182,10 @@ with tab1:
           st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
 
 
-# ================= TAB 2: OUTLOOK SPLIT-VIEW INBOX =================
+# ================= TAB 2: OUTLOOK INBOX WITH REPLY & FORWARD =================
 with tab2:
   st.markdown("<br>", unsafe_allow_html=True)
-  st.markdown("### 📥 Outlook Split-View Inbox")
+  st.markdown("### 📥 Outlook Inbox & Actions")
 
   inbox_col1, inbox_col2 = st.columns(2, gap="large")
   with inbox_col1:
@@ -298,7 +298,82 @@ with tab2:
       st.text_area(
           "Message Content",
           value=selected_mail["Full_Body"],
-          height=300,
+          height=200,
           key="outlook_body_box",
           label_visibility="collapsed",
       )
+
+      st.markdown("<br>", unsafe_allow_html=True)
+      st.markdown("#### ✍️ Reply / Forward Action")
+
+      action_type = st.radio(
+          "Action चुनें:", ["Reply", "Forward"], horizontal=True
+      )
+
+      forward_to = ""
+      if action_type == "Forward":
+        forward_to = st.text_input(
+            "Forward To (Email ID)", placeholder="kisko-bhejna-hai@gmail.com"
+        )
+
+      reply_message = st.text_area(
+          "Message likhein...",
+          placeholder="अपना उत्तर या संदेश यहाँ टाइप करें...",
+          key="reply_text_input",
+      )
+
+      if st.button("📤 Send Action Now", use_container_width=True):
+        if not inbox_email_id or not inbox_app_password:
+          st.error("⚠️ कृपया ऊपर अपनी Gmail ID और App Password दर्ज करें!")
+        elif not reply_message:
+          st.error("⚠️ कृपया मैसेज बॉक्स में कुछ लिखें!")
+        else:
+          try:
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()
+            server.login(inbox_email_id, inbox_app_password)
+
+            msg = MIMEMultipart()
+            msg["From"] = inbox_email_id
+
+            # सेेंडर का असली ईमेल एड्रेस निकालने की कोशिश (जैसे 'name <email@gmail.com>')
+            import re
+
+            raw_sender = selected_mail["Sender"]
+            email_match = re.search(r"<(.+?)>", raw_sender)
+            target_email = (
+                email_match.group(1) if email_match else raw_sender.strip()
+            )
+
+            if action_type == "Reply":
+              msg["To"] = target_email
+              msg["Subject"] = f"Re: {selected_mail['Subject']}"
+              final_body = (
+                  f"{reply_message}\n\n-------------------\nOriginal Message"
+                  f" from {raw_sender}:\n{selected_mail['Full_Body']}"
+              )
+            else:  # Forward
+              if not forward_to:
+                st.error("⚠️ कृपया फॉरवर्ड करने के लिए ईमेल आईडी दर्ज करें!")
+                server.quit()
+                st.stop()
+              msg["To"] = forward_to
+              msg["Subject"] = f"Fwd: {selected_mail['Subject']}"
+              final_body = (
+                  f"{reply_message}\n\n---------- Forwarded message"
+                  f" ----------\nFrom: {raw_sender}\nSubject:"
+                  f" {selected_mail['Subject']}\n\n{selected_mail['Full_Body']}"
+              )
+
+            msg.attach(MIMEText(final_body, "plain"))
+            server.sendmail(
+                inbox_email_id, msg["To"], msg.as_string()
+            )
+            server.quit()
+
+            st.success(
+                f"✅ ईमेल सफलतापूर्वक {action_type.lower()} कर दिया गया है!"
+            )
+
+          except Exception as e:
+            st.error(f"❌ भेजने में एरर आया: {e}")
