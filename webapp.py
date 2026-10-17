@@ -182,9 +182,12 @@ with tab1:
 
 
 # ================= TAB 2: EMAIL RECEIVING (INBOX) LOGIC =================
+import pandas as pd
+
+# ================= TAB 2: EMAIL RECEIVING (INBOX) LOGIC =================
 with tab2:
   st.markdown("<br>", unsafe_allow_html=True)
-  st.markdown("### 📥 इनबॉक्स चेक करें (Inbox)")
+  st.markdown("### 📥 Outlook Style Inbox")
 
   inbox_col1, inbox_col2 = st.columns(2, gap="large")
   with inbox_col1:
@@ -199,13 +202,13 @@ with tab2:
         key="inbox_pass",
     )
 
-  fetch_button = st.button("🔄 Fetch Latest Emails", use_container_width=True)
+  fetch_button = st.button("🔄 Load Inbox (Outlook View)", use_container_width=True)
 
   if fetch_button:
     if not inbox_email_id or not inbox_app_password:
       st.error("⚠️ कृपया अपनी Gmail ID और App Password दर्ज करें!")
     else:
-      with st.spinner("इनबॉक्स से मेल्स लोड हो रहे हैं..."):
+      with st.spinner("इनबॉक्स लोड हो रहा है..."):
         try:
           mail = imaplib.IMAP4_SSL("imap.gmail.com")
           mail.login(inbox_email_id, inbox_app_password)
@@ -217,29 +220,24 @@ with tab2:
             st.error("❌ इनबॉक्स फेच करने में असफल।")
           else:
             email_ids = messages[0].split()
-            latest_email_ids = email_ids[-5:]
+            latest_email_ids = email_ids[-10:]  # आखिरी 10 मेल्स
             latest_email_ids.reverse()
 
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown("#### 📬 आपके हालिया 5 ईमेल:")
+            emails_list_data = []
 
-            for num in latest_email_ids:
+            for i, num in enumerate(latest_email_ids):
               status, data = mail.fetch(num, "(RFC822)")
               for response_part in data:
                 if isinstance(response_part, tuple):
                   msg = email.message_from_bytes(response_part[1])
-                  subject = msg["subject"]
-                  sender = msg["from"]
+                  subject = msg["subject"] or "No Subject"
+                  sender = msg["from"] or "Unknown Sender"
 
+                  # Body निकालना
                   body = ""
                   if msg.is_multipart():
                     for part in msg.walk():
-                      content_type = part.get_content_type()
-                      content_disposition = str(part.get("Content-Disposition"))
-                      if (
-                          content_type == "text/plain"
-                          and "attachment" not in content_disposition
-                      ):
+                      if part.get_content_type() == "text/plain":
                         payload = part.get_payload(decode=True)
                         if payload:
                           try:
@@ -255,17 +253,60 @@ with tab2:
                       except:
                         body = payload.decode("latin-1", errors="ignore")
 
-                  with st.expander(f"📩 From: {sender} | Sub: {subject}"):
-                    st.write(f"**Subject:** {subject}")
-                    st.write(f"**From:** {sender}")
-                    st.markdown("---")
-                    st.write(
-                        body[:500] + "..."
-                        if len(body) > 500
-                        else body if body else "[No text body found]"
-                    )
+                  emails_list_data.append({
+                      "Index": i + 1,
+                      "Sender": sender,
+                      "Subject": subject,
+                      "Full_Body": body if body else "[No text body]",
+                  })
+
+            if emails_list_data:
+              # सेशन स्टेट में स्टोर करना ताकि क्लिक करने पर गायब न हो
+              st.session_state["inbox_df"] = emails_list_data
 
           mail.logout()
 
         except Exception as e:
           st.error(f"❌ इनबॉक्स लोड करने में एरर आया: {e}")
+
+  # यदि मेल्स लोड हो चुके हैं तो टेबल और रीडिंग पेन दिखाएं
+  if "inbox_df" in st.session_state and st.session_state["inbox_df"]:
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("#### 📋 आपके मेल्स की लिस्ट:")
+
+    # टेबल के लिए डेटा तैयार करना
+    df_display = pd.DataFrame(st.session_state["inbox_df"])
+    
+    # सिर्फ Sender और Subject दिखने वाली साफ़-सुथरी टेबल
+    st.dataframe(
+        df_display[["Index", "Sender", "Subject"]],
+        use_container_width=True,
+        hide_index=True,
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("#### 📖 Reading Pane (ईमेल पढ़ें)")
+
+    # आउटलुक की तरह मेल चुनने के लिए ड्रॉपडाउन
+    selected_index = st.selectbox(
+        "पूरा मैसेज पढ़ने के लिए सूची से नंबर चुनें:",
+        options=[item["Index"] for item in st.session_state["inbox_df"]],
+    )
+
+    # चुने गए मेल का विवरण दिखाना
+    selected_mail = next(
+        item
+        for item in st.session_state["inbox_df"]
+        if item["Index"] == selected_index
+    )
+
+    st.info(
+        f"**From:** {selected_mail['Sender']}\n\n**Subject:**"
+        f" {selected_mail['Subject']}"
+    )
+    st.text_area(
+        "Message Body",
+        value=selected_mail["Full_Body"],
+        height=200,
+        key="read_body_area",
+    )
