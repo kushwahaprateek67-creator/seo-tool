@@ -25,7 +25,7 @@ else:
   login_box.empty()
 
 # पेज सेटिंग (वाइड लेआउट)
-st.set_page_config(page_title="Complete Outlook 2021 Dashboard", layout="wide")
+st.set_page_config(page_title="Outlook 2021 Fixed Dashboard", layout="wide")
 
 # आउटलुक 2021 मॉडर्न CSS डिज़ाइन
 st.markdown(
@@ -72,13 +72,13 @@ st.markdown(
 
 # ऐप हेडर
 st.markdown(
-    "<h1 style='text-align: center; font-size: 28px; color: #0078d4;'>📧 Complete Outlook 2021 Dashboard (All Messages)</h1>",
+    "<h1 style='text-align: center; font-size: 28px; color: #0078d4;'>📧 Outlook 2021 Dashboard (Fixed Body Viewer)</h1>",
     unsafe_allow_html=True,
 )
 st.markdown("<hr style='border: 1px solid #2d2d2d; margin: 15px 0;'>", unsafe_allow_html=True)
 
 # मुख्य टैब्स
-tab1, tab2 = tab1, tab2 = st.tabs(["📤 Bulk Email Campaign", "📥 All Inbox Messages & Forward"])
+tab1, tab2 = st.tabs(["📤 Bulk Email Campaign", "📥 Outlook Mailbox & Forward"])
 
 # ================= TAB 1: BULK EMAIL SENDING =================
 with tab1:
@@ -177,31 +177,31 @@ with tab1:
           st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
 
 
-# ================= TAB 2: ALL INBOX MESSAGES (NO FILTER) =================
+# ================= TAB 2: OUTLOOK 2021 MAILBOX (FIXED BODY EXTRACTION) =================
 with tab2:
   st.markdown("<br>", unsafe_allow_html=True)
 
   top_c1, top_c2, top_c3 = st.columns([1, 1, 1], gap="medium")
   with top_c1:
     inbox_email_id = st.text_input(
-        "Mailbox Gmail ID", placeholder="your-email@gmail.com", key="all_email"
+        "Mailbox Gmail ID", placeholder="your-email@gmail.com", key="fix_email"
     )
   with top_c2:
     inbox_app_password = st.text_input(
         "App Password",
         type="password",
         placeholder="16 अंकों का पासवर्ड",
-        key="all_pass",
+        key="fix_pass",
     )
   with top_c3:
     st.markdown("<br>", unsafe_allow_html=True)
-    fetch_all_btn = st.button("🔄 Sync All Inbox Messages", use_container_width=True)
+    fetch_fix_btn = st.button("🔄 Sync Mailbox & Messages", use_container_width=True)
 
-  if fetch_all_btn:
+  if fetch_fix_btn:
     if not inbox_email_id or not inbox_app_password:
       st.error("⚠️ कृपया अपनी Gmail ID और App Password दर्ज करें!")
     else:
-      with st.spinner("इनबॉक्स के सभी मेल्स लोड हो रहे हैं..."):
+      with st.spinner("मेल्स और उनके कंटेंट लोड हो रहे हैं..."):
         try:
           mail = imaplib.IMAP4_SSL("imap.gmail.com")
           mail.login(inbox_email_id, inbox_app_password)
@@ -210,13 +210,13 @@ with tab2:
           status, messages = mail.search(None, "ALL")
 
           if status != "OK":
-            st.error("❌ इनबॉक्स फेच करने में असफल।")
+            st.error("❌ मेलबॉक्स फेच करने में असफल।")
           else:
             email_ids = messages[0].split()
             latest_email_ids = email_ids[-30:]  # आखिरी 30 मेल्स
             latest_email_ids.reverse()
 
-            all_mailbox_data = []
+            fixed_mailbox_data = []
 
             for i, num in enumerate(latest_email_ids):
               status, data = mail.fetch(num, "(RFC822)")
@@ -226,38 +226,54 @@ with tab2:
                   subject = msg["subject"] or "No Subject"
                   sender = msg["from"] or "Unknown Sender"
 
+                  # --- मजबूत बॉडी एक्सट्रैक्शन लॉजिक (ताकि कोई मेल खाली न रहे) ---
                   body = ""
                   if msg.is_multipart():
                     for part in msg.walk():
-                      if part.get_content_type() == "text/plain":
+                      content_type = part.get_content_type()
+                      content_disposition = str(part.get("Content-Disposition"))
+                      # अटैचमेंट छोड़कर टेक्स्ट या html ढूंढें
+                      if content_type in ["text/plain", "text/html"] and "attachment" not in content_disposition:
                         payload = part.get_payload(decode=True)
                         if payload:
-                          try:
-                            body = payload.decode("utf-8", errors="ignore")
-                          except:
-                            body = payload.decode("latin-1", errors="ignore")
-                        break
+                          for enc in ["utf-8", "latin-1", "iso-8859-1"]:
+                            try:
+                              body = payload.decode(enc)
+                              break
+                            except:
+                              continue
+                        if body:
+                          break
                   else:
                     payload = msg.get_payload(decode=True)
                     if payload:
-                      try:
-                        body = payload.decode("utf-8", errors="ignore")
-                      except:
-                        body = payload.decode("latin-1", errors="ignore")
+                      for enc in ["utf-8", "latin-1", "iso-8859-1"]:
+                        try:
+                          body = payload.decode(enc)
+                          break
+                        except:
+                          continue
+
+                  # अगर फिर भी बॉडी खाली है, तो सब्जेक्ट या हेडर दिखा दें ताकि डिब्बा खाली न लगे
+                  if not body.strip():
+                    body = f"[System Notification / Status Mail]\nSubject: {subject}\nSender: {sender}"
+
+                  # HTML टैग्स हटाने के लिए साधारण क्लीनिंग (optional)
+                  body = re.sub('<.*?>', '', body)
 
                   is_reply = "re:" in subject.lower() or "original message" in body.lower()
 
-                  all_mailbox_data.append({
+                  fixed_mailbox_data.append({
                       "Index": i + 1,
                       "Sender": sender,
                       "Subject": subject,
-                      "Full_Body": body if body else "[No text body]",
+                      "Full_Body": body,
                       "Type": "💬 Reply" if is_reply else "📥 Mail"
                   })
 
-            if all_mailbox_data:
-              st.session_state["all_mailbox_df"] = all_mailbox_data
-              st.success(f"✅ कुल {len(all_mailbox_data)} मेल्स लोड हो चुके हैं!")
+            if fixed_mailbox_data:
+              st.session_state["fixed_mailbox_df"] = fixed_mailbox_data
+              st.success(f"✅ कुल {len(fixed_mailbox_data)} मेल्स सफलतापूर्वक लोड हो गए हैं!")
 
           mail.logout()
 
@@ -265,24 +281,24 @@ with tab2:
           st.error(f"❌ मेलबॉक्स लोड करने में एरर आया: {e}")
 
   # अगर डेटा मौजूद है, तो 3-पैनल लेआउट दिखाएं
-  if "all_mailbox_df" in st.session_state and st.session_state["all_mailbox_df"]:
+  if "fixed_mailbox_df" in st.session_state and st.session_state["fixed_mailbox_df"]:
     st.markdown("<hr style='border: 1px solid #2d2d2d; margin: 15px 0;'>", unsafe_allow_html=True)
 
     panel1, panel2, panel3 = st.columns([0.8, 1.2, 1.5], gap="medium")
 
     with panel1:
       st.markdown("##### 📁 Folders")
-      st.markdown("🔹 **Inbox (All Messages)**")
-      st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;📥 **All Mails**")
+      st.markdown("🔹 **Inbox**")
+      st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;📥 **All Messages**")
       st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;📤 **Sent Items**")
       st.markdown("---")
-      st.info("💡 यहाँ आपके इनबॉक्स के सभी मेल्स लाइन से दिख रहे हैं।")
+      st.info("💡 किसी भी मेल पर क्लिक करते ही उसका कंटेंट दाईं तरफ दिखेगा।")
 
     with panel2:
       st.markdown("##### 📋 Messages List")
       mail_options = {
           f"{item['Index']}. [{item['Type']}] {item['Subject'][:20]}...": item["Index"]
-          for item in st.session_state["all_mailbox_df"]
+          for item in st.session_state["fixed_mailbox_df"]
       }
 
       selected_mail_label = st.radio(
@@ -297,7 +313,7 @@ with tab2:
       st.markdown("##### 📖 Reading & Forward Pane")
       selected_mail = next(
           item
-          for item in st.session_state["all_mailbox_df"]
+          for item in st.session_state["fixed_mailbox_df"]
           if item["Index"] == selected_index
       )
 
@@ -306,11 +322,12 @@ with tab2:
       st.markdown(f"**Subject:** {selected_mail['Subject']}")
       st.markdown("---")
 
+      # अब यहाँ हर मेल का असली कंटेंट साफ़-साफ़ दिखाई देगा
       st.text_area(
           "Reading Area",
           value=selected_mail["Full_Body"],
-          height=160,
-          key="all_reading_box",
+          height=180,
+          key="fix_reading_box",
           label_visibility="collapsed",
       )
 
@@ -320,14 +337,14 @@ with tab2:
       forward_target = st.text_input(
           "Forward To (Receiver Gmail ID)", 
           placeholder="recipient@gmail.com",
-          key="all_forward_input"
+          key="fix_forward_input"
       )
 
       custom_note = st.text_area(
           "Note / Message",
           placeholder="साथ में कोई नोट जोड़ना चाहें...",
           height=60,
-          key="all_note_box",
+          key="fix_note_box",
       )
 
       if st.button("🚀 Forward Mail Now", use_container_width=True):
