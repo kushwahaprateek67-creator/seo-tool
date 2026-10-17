@@ -72,7 +72,7 @@ st.markdown(
 
 # ऐप हेडर
 st.markdown(
-    "<h1 style='text-align: center; font-size: 28px; color: #0078d4;'>📧 Outlook 2021 Dashboard (Fixed Body Viewer)</h1>",
+    "<h1 style='text-align: center; font-size: 28px; color: #0078d4;'>📧 Outlook 2021 Dashboard (Dynamic Viewer)</h1>",
     unsafe_allow_html=True,
 )
 st.markdown("<hr style='border: 1px solid #2d2d2d; margin: 15px 0;'>", unsafe_allow_html=True)
@@ -177,7 +177,7 @@ with tab1:
           st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
 
 
-# ================= TAB 2: OUTLOOK 2021 MAILBOX (FIXED BODY EXTRACTION) =================
+# ================= TAB 2: OUTLOOK 2021 MAILBOX (DYNAMIC BODY FIX) =================
 with tab2:
   st.markdown("<br>", unsafe_allow_html=True)
 
@@ -226,13 +226,11 @@ with tab2:
                   subject = msg["subject"] or "No Subject"
                   sender = msg["from"] or "Unknown Sender"
 
-                  # --- मजबूत बॉडी एक्सट्रैक्शन लॉजिक (ताकि कोई मेल खाली न रहे) ---
                   body = ""
                   if msg.is_multipart():
                     for part in msg.walk():
                       content_type = part.get_content_type()
                       content_disposition = str(part.get("Content-Disposition"))
-                      # अटैचमेंट छोड़कर टेक्स्ट या html ढूंढें
                       if content_type in ["text/plain", "text/html"] and "attachment" not in content_disposition:
                         payload = part.get_payload(decode=True)
                         if payload:
@@ -254,13 +252,10 @@ with tab2:
                         except:
                           continue
 
-                  # अगर फिर भी बॉडी खाली है, तो सब्जेक्ट या हेडर दिखा दें ताकि डिब्बा खाली न लगे
                   if not body.strip():
                     body = f"[System Notification / Status Mail]\nSubject: {subject}\nSender: {sender}"
 
-                  # HTML टैग्स हटाने के लिए साधारण क्लीनिंग (optional)
                   body = re.sub('<.*?>', '', body)
-
                   is_reply = "re:" in subject.lower() or "original message" in body.lower()
 
                   fixed_mailbox_data.append({
@@ -292,7 +287,7 @@ with tab2:
       st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;📥 **All Messages**")
       st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;📤 **Sent Items**")
       st.markdown("---")
-      st.info("💡 किसी भी मेल पर क्लिक करते ही उसका कंटेंट दाईं तरफ दिखेगा।")
+      st.info("💡 किसी भी मेल पर क्लिक करते ही उसका सही कंटेंट यहाँ दिखेगा।")
 
     with panel2:
       st.markdown("##### 📋 Messages List")
@@ -322,12 +317,11 @@ with tab2:
       st.markdown(f"**Subject:** {selected_mail['Subject']}")
       st.markdown("---")
 
-      # अब यहाँ हर मेल का असली कंटेंट साफ़-साफ़ दिखाई देगा
+      # यहाँ से key हटा दिया गया है ताकि हर नए मेल का टेक्स्ट तुरंत सही से अपडेट हो
       st.text_area(
           "Reading Area",
           value=selected_mail["Full_Body"],
           height=180,
-          key="fix_reading_box",
           label_visibility="collapsed",
       )
 
