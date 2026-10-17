@@ -5,6 +5,7 @@ import imaplib
 import random
 import smtplib
 import time
+import pandas as pd
 import streamlit as st
 
 # Apna fixed password yahan set karein
@@ -75,13 +76,13 @@ st.markdown(
 # ----------------- फ्रेम के अंदर का कंटेंट -----------------
 
 st.markdown(
-    "<h1 style='text-align: center;'>✉️ Bulk Email Tool & Inbox</h1>",
+    "<h1 style='text-align: center;'>✉️ Bulk Email Tool & Outlook Inbox</h1>",
     unsafe_allow_html=True,
 )
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
-# टैब्स पहले डिफाइन करें
-tab1, tab2 = st.tabs(["📤 Send Bulk Emails", "📥 Check Inbox (Receive)"])
+# टैब्स डिफाइन करना
+tab1, tab2 = st.tabs(["📤 Send Bulk Emails", "📥 Outlook Split-View Inbox"])
 
 # ================= TAB 1: EMAIL SENDING LOGIC =================
 with tab1:
@@ -181,13 +182,10 @@ with tab1:
           st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
 
 
-# ================= TAB 2: EMAIL RECEIVING (INBOX) LOGIC =================
-import pandas as pd
-
-# ================= TAB 2: EMAIL RECEIVING (INBOX) LOGIC =================
+# ================= TAB 2: OUTLOOK SPLIT-VIEW INBOX =================
 with tab2:
   st.markdown("<br>", unsafe_allow_html=True)
-  st.markdown("### 📥 Outlook Style Inbox")
+  st.markdown("### 📥 Outlook Split-View Inbox")
 
   inbox_col1, inbox_col2 = st.columns(2, gap="large")
   with inbox_col1:
@@ -202,7 +200,7 @@ with tab2:
         key="inbox_pass",
     )
 
-  fetch_button = st.button("🔄 Load Inbox (Outlook View)", use_container_width=True)
+  fetch_button = st.button("🔄 Load Outlook Inbox", use_container_width=True)
 
   if fetch_button:
     if not inbox_email_id or not inbox_app_password:
@@ -220,7 +218,7 @@ with tab2:
             st.error("❌ इनबॉक्स फेच करने में असफल।")
           else:
             email_ids = messages[0].split()
-            latest_email_ids = email_ids[-10:]  # आखिरी 10 मेल्स
+            latest_email_ids = email_ids[-10:]
             latest_email_ids.reverse()
 
             emails_list_data = []
@@ -233,7 +231,6 @@ with tab2:
                   subject = msg["subject"] or "No Subject"
                   sender = msg["from"] or "Unknown Sender"
 
-                  # Body निकालना
                   body = ""
                   if msg.is_multipart():
                     for part in msg.walk():
@@ -261,52 +258,47 @@ with tab2:
                   })
 
             if emails_list_data:
-              # सेशन स्टेट में स्टोर करना ताकि क्लिक करने पर गायब न हो
-              st.session_state["inbox_df"] = emails_list_data
+              st.session_state["outlook_df"] = emails_list_data
 
           mail.logout()
 
         except Exception as e:
           st.error(f"❌ इनबॉक्स लोड करने में एरर आया: {e}")
 
-  # यदि मेल्स लोड हो चुके हैं तो टेबल और रीडिंग पेन दिखाएं
-  if "inbox_df" in st.session_state and st.session_state["inbox_df"]:
+  if "outlook_df" in st.session_state and st.session_state["outlook_df"]:
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("#### 📋 आपके मेल्स की लिस्ट:")
+    list_col, read_col = st.columns([1, 1], gap="medium")
 
-    # टेबल के लिए डेटा तैयार करना
-    df_display = pd.DataFrame(st.session_state["inbox_df"])
-    
-    # सिर्फ Sender और Subject दिखने वाली साफ़-सुथरी टेबल
-    st.dataframe(
-        df_display[["Index", "Sender", "Subject"]],
-        use_container_width=True,
-        hide_index=True,
-    )
+    with list_col:
+      st.markdown("#### 📋 Inbox List")
+      mail_options = {
+          f"{item['Index']}. {item['Subject'][:25]}...": item["Index"]
+          for item in st.session_state["outlook_df"]
+      }
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("#### 📖 Reading Pane (ईमेल पढ़ें)")
+      selected_mail_label = st.radio(
+          "मेल्स चुनें:",
+          options=list(mail_options.keys()),
+          label_visibility="collapsed",
+      )
 
-    # आउटलुक की तरह मेल चुनने के लिए ड्रॉपडाउन
-    selected_index = st.selectbox(
-        "पूरा मैसेज पढ़ने के लिए सूची से नंबर चुनें:",
-        options=[item["Index"] for item in st.session_state["inbox_df"]],
-    )
+      selected_index = mail_options[selected_mail_label]
 
-    # चुने गए मेल का विवरण दिखाना
-    selected_mail = next(
-        item
-        for item in st.session_state["inbox_df"]
-        if item["Index"] == selected_index
-    )
+    with read_col:
+      st.markdown("#### 📖 Reading Pane")
+      selected_mail = next(
+          item
+          for item in st.session_state["outlook_df"]
+          if item["Index"] == selected_index
+      )
 
-    st.info(
-        f"**From:** {selected_mail['Sender']}\n\n**Subject:**"
-        f" {selected_mail['Subject']}"
-    )
-    st.text_area(
-        "Message Body",
-        value=selected_mail["Full_Body"],
-        height=200,
-        key="read_body_area",
-    )
+      st.markdown(f"**From:** `{selected_mail['Sender']}`")
+      st.markdown(f"**Subject:** {selected_mail['Subject']}")
+      st.markdown("---")
+      st.text_area(
+          "Message Content",
+          value=selected_mail["Full_Body"],
+          height=300,
+          key="outlook_body_box",
+          label_visibility="collapsed",
+      )
