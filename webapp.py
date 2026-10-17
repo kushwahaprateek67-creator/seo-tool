@@ -26,7 +26,7 @@ else:
 # पेज सेटिंग
 st.set_page_config(page_title="Bulk Email Tool & Outlook", layout="centered")
 
-# पूरे ऐप का CSS डिज़ाइन
+# पूरे ऐप का CSS डिज़ाइन (बटन और अन्य एलिमेंट्स के लिए)
 st.markdown(
     """
     <style>
@@ -306,12 +306,15 @@ with tab2:
       st.markdown("<br>", unsafe_allow_html=True)
       st.markdown("#### ✍️ Reply / Forward Action")
 
+      # फोटो की तरह गोल बटन (Pill style buttons) दिखने के लिए horizontal radio का इस्तेमाल
       action_type = st.radio(
-          "Action चुनें:", ["Reply", "Forward"], horizontal=True
+          "Action चुनें:", 
+          ["↩️ Reply", "➡️ Forward"], 
+          horizontal=True
       )
 
       forward_to = ""
-      if action_type == "Forward":
+      if "Forward" in action_type:
         forward_to = st.text_input(
             "Forward To (Email ID)", placeholder="kisko-bhejna-hai@gmail.com"
         )
@@ -322,7 +325,7 @@ with tab2:
           key="reply_text_input",
       )
 
-      if st.button("📤 Send Action Now", use_container_width=True):
+      if st.button("🚀 Send Action Now", use_container_width=True):
         if not inbox_email_id or not inbox_app_password:
           st.error("⚠️ कृपया ऊपर अपनी Gmail ID और App Password दर्ज करें!")
         elif not reply_message:
@@ -336,7 +339,6 @@ with tab2:
             msg = MIMEMultipart()
             msg["From"] = inbox_email_id
 
-            # सेेंडर का असली ईमेल एड्रेस निकालने की कोशिश (जैसे 'name <email@gmail.com>')
             import re
 
             raw_sender = selected_mail["Sender"]
@@ -345,7 +347,7 @@ with tab2:
                 email_match.group(1) if email_match else raw_sender.strip()
             )
 
-            if action_type == "Reply":
+            if "Reply" in action_type:
               msg["To"] = target_email
               msg["Subject"] = f"Re: {selected_mail['Subject']}"
               final_body = (
@@ -372,7 +374,7 @@ with tab2:
             server.quit()
 
             st.success(
-                f"✅ ईमेल सफलतापूर्वक {action_type.lower()} कर दिया गया है!"
+                f"✅ ईमेल सफलतापूर्वक भेज दिया गया है!"
             )
 
           except Exception as e:
