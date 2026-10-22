@@ -136,19 +136,28 @@ if send_button:
                 status_text = st.empty()
 
                 for index, rcv_email in enumerate(emails_list):
-                    # Unsubscribe aur Address footer line added here
-                    unsubscribe_footer = "\n\n---\nAap aage se aisi emails nahi chahte, toh reply mein 'Unsubscribe' likhein.\nOffice Address: Bakhrauli, Tirwa, Kannauj, Uttar Pradesh"
+                    # HTML Unsubscribe footer
+                    unsubscribe_html = f"""
+                    <br><br>
+                    <hr style='border: 0.5px solid #333;'>
+                    <p style='font-size: 12px; color: #888;'>
+                    Agar aap aage se aisi emails nahi chahte, toh yahan click karein: 
+                    <a href="mailto:{gmail_id}?subject=Unsubscribe&body=Please remove me" style='color: #00bfff;'>Unsubscribe</a>
+                    </p>
+                    """
                     
                     personalized_body = (
-                        email_template.replace("{sender}", sender_name)
-                        + unsubscribe_footer
+                        email_template.replace("{sender}", sender_name).replace("\n", "<br>")
+                        + unsubscribe_html
                     )
 
                     msg = MIMEMultipart()
                     msg["From"] = f"{sender_name} <{gmail_id}>"
                     msg["To"] = rcv_email
                     msg["Subject"] = subject_line
-                    msg.attach(MIMEText(personalized_body, "plain"))
+                    
+                    # HTML format use kiya hai taaki link clickable rahe
+                    msg.attach(MIMEText(personalized_body, "html"))
 
                     server.sendmail(gmail_id, rcv_email, msg.as_string())
                     success_count += 1
