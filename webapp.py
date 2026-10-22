@@ -86,7 +86,7 @@ col1, col2 = st.columns(2, gap="large")
 # पहला हिस्सा - अकाउंट की जानकारी
 with col1:
     st.markdown("### 1. अकाउंट डिटेल्स")
-    sender_name = st.text_input("Sender Name", placeholder="अपना नाम लिखें")
+    sender_name = st.text_input("Sender Name", value="Prateek Kushwaha", placeholder="अपना नाम लिखें")
     gmail_id = st.text_input("Gmail ID", placeholder="your-email@gmail.com")
     app_password = st.text_input(
         "App Password", type="password", placeholder="16 अंकों का पासवर्ड"
@@ -95,9 +95,21 @@ with col1:
 # दूसरा हिस्सा - ईमेल मैसेज और डेटा
 with col2:
     st.markdown("### 2. संदेश और डेटा")
-    subject_line = st.text_input("Subject Line", placeholder="ईमेल का विषय")
+    subject_line = st.text_input("Subject Line", value="Quick question about your content performance", placeholder="ईमेल का विषय")
+    
+    default_template = """Hi,
+
+Searchers asking complex, intent-driven questions are usually closer to buying than those searching broad keywords.
+
+I help companies structure their FAQs, guides, and core pages for Answer Engine Optimization (AEO) to capture those high-intent users.
+
+Would you be interested in reviewing how your current content performs for conversational answer queries?
+
+Regards,
+{sender}"""
+
     email_template = st.text_area(
-        "Email Template", height=110, placeholder="अपना मैसेज यहाँ लिखें..."
+        "Email Template", value=default_template, height=180, placeholder="अपना मैसेज यहाँ लिखें..."
     )
     data = st.text_area(
         "Data (Email IDs - हर लाइन में एक)",
@@ -136,7 +148,7 @@ if send_button:
                 status_text = st.empty()
 
                 for index, rcv_email in enumerate(emails_list):
-                    # Sirf Clean Unsubscribe Link yahan set hai
+                    # Clean Unsubscribe Link HTML Footer
                     unsubscribe_html = f"""
                     <br><br>
                     <p style='font-size: 12px; color: #888;'>
@@ -154,6 +166,7 @@ if send_button:
                     msg["To"] = rcv_email
                     msg["Subject"] = subject_line
                     
+                    # HTML format taaki unsubscribe link clickable rahe
                     msg.attach(MIMEText(personalized_body, "html"))
 
                     server.sendmail(gmail_id, rcv_email, msg.as_string())
