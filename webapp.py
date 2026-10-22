@@ -176,7 +176,7 @@ if send_button:
                     progress_bar.progress(progress)
 
                     if index < total_emails - 1:
-                        delay_seconds = random.randint(6, 8)
+                        delay_seconds = random.randint(2)
                         for remaining in range(delay_seconds, 0, -1):
                             status_text.info(
                                 f"✅ {rcv_email} को भेज दिया। स्पैम से बचने के लिए अगले ईमेल"
