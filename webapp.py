@@ -68,13 +68,11 @@ with col2:
     # Naya Spintax Template! Dhyan se dekhiye [] brackets ko.
     default_template = """[Hello|Hi|Hey],
 
-I was [reviewing|looking at] websites in your space and wanted to [ask|inquire] how your business currently tracks mentions inside AI-driven search tools.
-
-I work with teams looking to establish a [strong|solid] presence across Google AI Overviews and generative engines methodically.
-
-I would be happy to share a [couple of|few] key observations that could help [elevate|improve] your profile.
-
-Would you be interested in a [brief chat|quick chat]?
+AI-powered search is creating new opportunities for businesses to reach potential customers.
+ 
+We identify GEO improvements for ChatGPT, Gemini, and Perplexity.
+ 
+May I send you a short visibility report and video overview?
 
 [Best regards|Best|Regards],
 {sender}"""
