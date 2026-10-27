@@ -229,7 +229,7 @@ if send_button:
 
                         # Human-like delay (60 se 120 seconds taaki spam flag na ho)
                         if recipient_index < total_recipients:
-                            delay_seconds = random.randint(60, 120)
+                            delay_seconds = random.randint(5, 6)
                             for remaining in range(delay_seconds, 0, -1):
                                 status_text.info(
                                     f"📨 ID: {sender_email} | Sent: {sent_with_this_id}/10"
