@@ -66,15 +66,17 @@ with col2:
     subject_data = st.text_area("Subject Lines (हर लाइन में अलग)", value=default_subjects, height=80)
 
     # Naya Spintax Template! Dhyan se dekhiye [] brackets ko.
-    default_template = """[Hi|Hello|Hey],
+    default_template = """[Hello|Hi|Hey],
 
-Searchers asking [complex|detailed|specific] questions are usually closer to [making a decision|converting|taking action] than those searching broad keywords.
+I was [reviewing|looking at] websites in your space and wanted to [ask|inquire] how your business currently tracks mentions inside AI-driven search tools.
 
-I help companies [structure|optimize|improve] their FAQs, guides, and core pages for Answer Engine Optimization (AEO) to capture those [high-intent|valuable] users.
+I work with teams looking to establish a [strong|solid] presence across Google AI Overviews and generative engines methodically.
 
-Would you be interested in a [quick|brief|short] review of how your current content performs?
+I would be happy to share a [couple of|few] key observations that could help [elevate|improve] your profile.
 
-[Regards|Best|Cheers],
+Would you be interested in a [brief chat|quick chat]?
+
+[Best regards|Best|Regards],
 {sender}"""
 
     email_template = st.text_area("Email Template (Spintax Supported)", value=default_template, height=180)
