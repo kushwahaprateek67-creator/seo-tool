@@ -1,4 +1,3 @@
-from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import random
@@ -22,87 +21,60 @@ else:
     login_box.empty()
 
 # पेज सेटिंग
-st.set_page_config(page_title="Bulk Email Tool", layout="centered")
+st.set_page_config(page_title="Bulk Email Tool (Anti-Spam)", layout="centered")
 
 # पूरे ऐप का CSS डिज़ाइन
 st.markdown(
     """
     <style>
-    .stApp, .stApp > header {
-        background-color: #000000 !important; 
-    }
+    .stApp, .stApp > header { background-color: #000000 !important; }
     .block-container {
         background-color: #001122 !important;
         border: 3px solid #00bfff !important;
         border-radius: 20px !important;
         box-shadow: 0px 0px 30px rgba(0, 191, 255, 0.5) !important;
         padding: 40px 30px !important;
-        margin-top: 40px !important;
-        margin-bottom: 40px !important;
+        margin-top: 40px !important; margin-bottom: 40px !important;
         max-width: 900px !important;
     }
-    h1, h2, h3, label p, .stMarkdown p {
-        font-weight: 800 !important;
-        color: #00bfff !important; 
-        font-size: 16px !important;
-    }
+    h1, h2, h3, label p, .stMarkdown p { font-weight: 800 !important; color: #00bfff !important; font-size: 16px !important; }
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        background-color: #000000 !important; 
-        color: #00bfff !important; 
-        border: 1px solid #0066ff !important; 
-        border-radius: 8px !important;
+        background-color: #000000 !important; color: #00bfff !important; 
+        border: 1px solid #0066ff !important; border-radius: 8px !important;
     }
     .stButton>button {
-        background-color: #0044cc !important;
-        color: white !important;
-        border: 2px solid #00bfff !important;
-        font-weight: bold;
-        border-radius: 8px;
-        transition: 0.3s;
-        height: 50px;
+        background-color: #0044cc !important; color: white !important;
+        border: 2px solid #00bfff !important; font-weight: bold;
+        border-radius: 8px; transition: 0.3s; height: 50px;
     }
-    .stButton>button:hover {
-        background-color: #00bfff !important;
-        color: black !important;
-        box-shadow: 0px 0px 15px #00bfff;
-    }
+    .stButton>button:hover { background-color: #00bfff !important; color: black !important; box-shadow: 0px 0px 15px #00bfff; }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# ----------------- फ्रेम के अंदर का कंटेंट -----------------
-
-st.markdown(
-    "<h1 style='text-align: center;'>✉️ Bulk Email Tool (Multi-ID Pool)</h1>",
-    unsafe_allow_html=True,
-)
+st.markdown("<h1 style='text-align: center;'>✉️ Bulk Email Tool (Anti-Spam Edition)</h1>", unsafe_allow_html=True)
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
-
-# लेआउट को दो भागों में बाँटना
 col1, col2 = st.columns(2, gap="large")
 
-# पहला हिस्सा - अकाउंट पूल की जानकारी
 with col1:
     st.markdown("### 1. अकाउंट्स पूल डिटेल्स")
-    sender_name = st.text_input(
-        "Sender Name", value="Prateek Kushwaha", placeholder="अपना नाम लिखें"
-    )
+    sender_name = st.text_input("Sender Name", value="Prateek Kushwaha")
     accounts_data = st.text_area(
-        "Gmail Accounts Pool (email:password - हर लाइन में एक)",
-        height=210,
+        "Gmail Accounts Pool (email:password)",
+        height=280,
         placeholder="id1@gmail.com:app_password_1\nid2@gmail.com:app_password_2",
     )
 
-# दूसरा हिस्सा - ईमेल मैसेज और डेटा
 with col2:
     st.markdown("### 2. संदेश और टारगेट डेटा")
-    subject_line = st.text_input(
-        "Subject Line",
-        value="Quick question about your content performance",
-        placeholder="ईमेल का विषय",
+    
+    # Naya: Multiple Subject Lines ka option
+    default_subjects = "Quick question about your content\nContent performance review\nAEO Strategy for your brand\nQuick question"
+    subject_data = st.text_area(
+        "Subject Lines (हर लाइन में अलग सब्जेक्ट डालें - Anti-Spam)",
+        value=default_subjects, height=80
     )
 
     default_template = """Hi,
@@ -116,62 +88,38 @@ Would you be interested in reviewing how your current content performs for conve
 Regards,
 {sender}"""
 
-    email_template = st.text_area(
-        "Email Template",
-        value=default_template,
-        height=180,
-        placeholder="अपना मैसेज यहाँ लिखें...",
-    )
-    data = st.text_area(
-        "Target Recipients (Email IDs - हर लाइन में एक)",
-        height=110,
-        placeholder="recipient1@gmail.com\nrecipient2@gmail.com",
-    )
+    email_template = st.text_area("Email Template (Plain Text Only)", value=default_template, height=180)
+    data = st.text_area("Target Recipients", height=100, placeholder="recipient1@gmail.com\nrecipient2@gmail.com")
+
+    # Live Calculator
+    recipients_list = []
+    if data:
+        raw_recipients = data.replace(',', '\n').replace(' ', '\n').split('\n')
+        recipients_list = [email.strip() for email in raw_recipients if email.strip() and '@' in email]
+        if len(recipients_list) > 0:
+            required_ids = (len(recipients_list) + 9) // 10  
+            st.info(f"📊 **{len(recipients_list)}** वैलिड ईमेल। आज **{required_ids} Gmail IDs** लगेंगी।")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# सेंड बटन को बीच में करने के लिए
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
-    send_button = st.button(
-        "🚀 Start Rotational Campaign", use_container_width=True
-    )
+    send_button = st.button("🚀 Start Inbox Campaign", use_container_width=True)
 
-# ईमेल भेजने का लॉजिक (Rotation & Limits के साथ)
 if send_button:
-    if not sender_name or not accounts_data or not data:
-        st.error(
-            "⚠️ कृपया Sender Name, Accounts Pool और Target Recipients सभी जानकारी"
-            " भरें!"
-        )
+    if not sender_name or not accounts_data or not data or not subject_data:
+        st.error("⚠️ कृपया सभी जानकारी भरें!")
     else:
-        # Accounts parse karein (email:password format)
+        # Subject lines parse karein
+        subjects_list = [s.strip() for s in subject_data.split('\n') if s.strip()]
+        
         raw_accounts = [acc.strip() for acc in accounts_data.split("\n") if acc.strip()]
-        account_pool = []
-        for acc in raw_accounts:
-            if ":" in acc:
-                email, pwd = acc.split(":", 1)
-                account_pool.append(
-                    {"email": email.strip(), "password": pwd.strip()}
-                )
+        account_pool = [{"email": a.split(":", 1)[0].strip(), "password": a.split(":", 1)[1].strip()} for a in raw_accounts if ":" in a]
 
-        recipients_list = [
-            email.strip() for email in data.split("\n") if email.strip()
-        ]
-
-        if not account_pool:
-            st.error(
-                "❌ कोई वैध अकाउंट नहीं मिला! कृपया 'email:app_password' फॉर्मेट"
-                " में डालें।"
-            )
-        elif not recipients_list:
-            st.error("❌ कोई टारगेट रिसीपिएंट ईमेल नहीं मिला!")
+        if not account_pool or not recipients_list or not subjects_list:
+            st.error("❌ डेटा सही फॉर्मेट में नहीं है।")
         else:
-            # 130 IDs max randomly pick karein pool me se roz ke liye
-            active_accounts = random.sample(
-                account_pool, min(130, len(account_pool))
-            )
-
+            active_accounts = random.sample(account_pool, min(130, len(account_pool)))
             total_recipients = len(recipients_list)
             recipient_index = 0
             success_count = 0
@@ -186,71 +134,50 @@ if send_button:
                 sender_email = account["email"]
                 app_password = account["password"]
                 sent_with_this_id = 0
-                max_per_id = 10  # Har ID se max 10 emails
 
                 try:
                     server = smtplib.SMTP("smtp.gmail.com", 587)
                     server.starttls()
                     server.login(sender_email, app_password)
 
-                    while (
-                        sent_with_this_id < max_per_id
-                        and recipient_index < total_recipients
-                    ):
+                    while sent_with_this_id < 10 and recipient_index < total_recipients:
                         rcv_email = recipients_list[recipient_index]
+                        
+                        # Naya: Random subject chuno
+                        current_subject = random.choice(subjects_list)
 
-                        unsubscribe_html = f"""
-                        <br><br>
-                        <p style='font-size: 12px; color: #888;'>
-                        <a href="mailto:{sender_email}?subject=Unsubscribe" style='color: #00bfff;'>Unsubscribe</a>
-                        </p>
-                        """
-
-                        personalized_body = (
-                            email_template.replace("{sender}", sender_name).replace(
-                                "\n", "<br>"
-                            )
-                            + unsubscribe_html
-                        )
+                        # Naya: Plain text body (bina HTML aur Unsubscribe link ke)
+                        personalized_body = email_template.replace("{sender}", sender_name)
 
                         msg = MIMEMultipart()
                         msg["From"] = f"{sender_name} <{sender_email}>"
                         msg["To"] = rcv_email
-                        msg["Subject"] = subject_line
-                        msg.attach(MIMEText(personalized_body, "html"))
+                        msg["Subject"] = current_subject
+                        
+                        # Naya: format "plain" set kiya gaya hai inbox me bhejne ke liye
+                        msg.attach(MIMEText(personalized_body, "plain"))
 
                         server.sendmail(sender_email, rcv_email, msg.as_string())
                         success_count += 1
                         sent_with_this_id += 1
                         recipient_index += 1
 
-                        progress = recipient_index / total_recipients
-                        progress_bar.progress(min(progress, 1.0))
+                        progress_bar.progress(min(recipient_index / total_recipients, 1.0))
 
-                        # Human-like delay (60 se 120 seconds taaki spam flag na ho)
                         if recipient_index < total_recipients:
-                            delay_seconds = random.randint(5, 6)
+                            delay_seconds = random.randint(5, 8)
                             for remaining in range(delay_seconds, 0, -1):
-                                status_text.info(
-                                    f"📨 ID: {sender_email} | Sent: {sent_with_this_id}/10"
-                                    f" | Next email in {remaining}s..."
-                                )
+                                status_text.info(f"📨 ID: {sender_email} | Sent: {sent_with_this_id}/10 | Next email in {remaining}s...")
                                 time.sleep(1)
 
                     server.quit()
 
                 except Exception as e:
-                    status_text.warning(
-                        f"⚠️ ID {sender_email} error: {e}. Moving to next ID..."
-                    )
+                    status_text.warning(f"⚠️ ID {sender_email} error: {e}. Moving to next ID...")
                     time.sleep(2)
                     continue
 
             status_text.empty()
             progress_bar.empty()
-
             st.balloons()
-            st.success(
-                f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक 130 IDs के रोटेशन"
-                " और एंटी-स्पैम डिले के साथ भेज दिए गए!"
-            )
+            st.success(f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक 100% Plain Text फॉर्मेट में भेज दिए गए!")
