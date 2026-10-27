@@ -3,6 +3,7 @@ from email.mime.text import MIMEText
 import random
 import smtplib
 import time
+import re
 import streamlit as st
 
 # Apna fixed password yahan set karein
@@ -10,9 +11,7 @@ MY_FIXED_PASSWORD = "Prateek@2026"
 
 # Password System
 login_box = st.empty()
-user_password = login_box.text_input(
-    "Tool open karne ke liye password dalein:", type="password"
-)
+user_password = login_box.text_input("Tool open karne ke liye password dalein:", type="password")
 
 if user_password != MY_FIXED_PASSWORD:
     st.warning("Kripya sahi password enter karein.")
@@ -20,21 +19,16 @@ if user_password != MY_FIXED_PASSWORD:
 else:
     login_box.empty()
 
-# पेज सेटिंग
-st.set_page_config(page_title="Bulk Email Tool (Anti-Spam)", layout="centered")
+st.set_page_config(page_title="Bulk Email Tool (Anti-Spam Spintax)", layout="centered")
 
-# पूरे ऐप का CSS डिज़ाइन
 st.markdown(
     """
     <style>
     .stApp, .stApp > header { background-color: #000000 !important; }
     .block-container {
-        background-color: #001122 !important;
-        border: 3px solid #00bfff !important;
-        border-radius: 20px !important;
-        box-shadow: 0px 0px 30px rgba(0, 191, 255, 0.5) !important;
-        padding: 40px 30px !important;
-        margin-top: 40px !important; margin-bottom: 40px !important;
+        background-color: #001122 !important; border: 3px solid #00bfff !important;
+        border-radius: 20px !important; box-shadow: 0px 0px 30px rgba(0, 191, 255, 0.5) !important;
+        padding: 40px 30px !important; margin-top: 40px !important; margin-bottom: 40px !important;
         max-width: 900px !important;
     }
     h1, h2, h3, label p, .stMarkdown p { font-weight: 800 !important; color: #00bfff !important; font-size: 16px !important; }
@@ -49,18 +43,16 @@ st.markdown(
     }
     .stButton>button:hover { background-color: #00bfff !important; color: black !important; box-shadow: 0px 0px 15px #00bfff; }
     </style>
-""",
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
-st.markdown("<h1 style='text-align: center;'>✉️ Bulk Email Tool (Anti-Spam Edition)</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>✉️ Bulk Email Tool (Spintax Edition)</h1>", unsafe_allow_html=True)
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
 
 col1, col2 = st.columns(2, gap="large")
 
 with col1:
     st.markdown("### 1. अकाउंट्स पूल डिटेल्स")
-    sender_name = st.text_input("Sender Name", value="Prateek Kushwaha")
+    sender_name = st.text_input("Sender Name (Signature ke liye)", value="Prateek Kushwaha")
     accounts_data = st.text_area(
         "Gmail Accounts Pool (email:password)",
         height=280,
@@ -70,28 +62,24 @@ with col1:
 with col2:
     st.markdown("### 2. संदेश और टारगेट डेटा")
     
-    # Naya: Multiple Subject Lines ka option
     default_subjects = "Quick question about your content\nContent performance review\nAEO Strategy for your brand\nQuick question"
-    subject_data = st.text_area(
-        "Subject Lines (हर लाइन में अलग सब्जेक्ट डालें - Anti-Spam)",
-        value=default_subjects, height=80
-    )
+    subject_data = st.text_area("Subject Lines (हर लाइन में अलग)", value=default_subjects, height=80)
 
-    default_template = """Hi,
+    # Naya Spintax Template! Dhyan se dekhiye [] brackets ko.
+    default_template = """[Hi|Hello|Hey],
 
-Searchers asking complex, intent-driven questions are usually closer to buying than those searching broad keywords.
+Searchers asking [complex|detailed|specific] questions are usually closer to [making a decision|converting|taking action] than those searching broad keywords.
 
-I help companies structure their FAQs, guides, and core pages for Answer Engine Optimization (AEO) to capture those high-intent users.
+I help companies [structure|optimize|improve] their FAQs, guides, and core pages for Answer Engine Optimization (AEO) to capture those [high-intent|valuable] users.
 
-Would you be interested in reviewing how your current content performs for conversational answer queries?
+Would you be interested in a [quick|brief|short] review of how your current content performs?
 
-Regards,
+[Regards|Best|Cheers],
 {sender}"""
 
-    email_template = st.text_area("Email Template (Plain Text Only)", value=default_template, height=180)
-    data = st.text_area("Target Recipients", height=100, placeholder="recipient1@gmail.com\nrecipient2@gmail.com")
+    email_template = st.text_area("Email Template (Spintax Supported)", value=default_template, height=180)
+    data = st.text_area("Target Recipients", height=100)
 
-    # Live Calculator
     recipients_list = []
     if data:
         raw_recipients = data.replace(',', '\n').replace(' ', '\n').split('\n')
@@ -106,13 +94,18 @@ col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
     send_button = st.button("🚀 Start Inbox Campaign", use_container_width=True)
 
+# Spintax Function
+def spin_text(text):
+    pattern = re.compile(r'\[([^\[\]]*)\]')
+    while pattern.search(text):
+        text = pattern.sub(lambda m: random.choice(m.group(1).split('|')), text)
+    return text
+
 if send_button:
     if not sender_name or not accounts_data or not data or not subject_data:
         st.error("⚠️ कृपया सभी जानकारी भरें!")
     else:
-        # Subject lines parse karein
         subjects_list = [s.strip() for s in subject_data.split('\n') if s.strip()]
-        
         raw_accounts = [acc.strip() for acc in accounts_data.split("\n") if acc.strip()]
         account_pool = [{"email": a.split(":", 1)[0].strip(), "password": a.split(":", 1)[1].strip()} for a in raw_accounts if ":" in a]
 
@@ -142,20 +135,18 @@ if send_button:
 
                     while sent_with_this_id < 10 and recipient_index < total_recipients:
                         rcv_email = recipients_list[recipient_index]
-                        
-                        # Naya: Random subject chuno
                         current_subject = random.choice(subjects_list)
 
-                        # Naya: Plain text body (bina HTML aur Unsubscribe link ke)
-                        personalized_body = email_template.replace("{sender}", sender_name)
+                        # Apply Spintax and replace sender
+                        base_body = email_template.replace("{sender}", sender_name)
+                        spun_body = spin_text(base_body)
 
                         msg = MIMEMultipart()
-                        msg["From"] = f"{sender_name} <{sender_email}>"
+                        # Header se custom name hata diya, taaki mismatch na ho
+                        msg["From"] = sender_email
                         msg["To"] = rcv_email
                         msg["Subject"] = current_subject
-                        
-                        # Naya: format "plain" set kiya gaya hai inbox me bhejne ke liye
-                        msg.attach(MIMEText(personalized_body, "plain"))
+                        msg.attach(MIMEText(spun_body, "plain"))
 
                         server.sendmail(sender_email, rcv_email, msg.as_string())
                         success_count += 1
@@ -180,4 +171,4 @@ if send_button:
             status_text.empty()
             progress_bar.empty()
             st.balloons()
-            st.success(f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक 100% Plain Text फॉर्मेट में भेज दिए गए!")
+            st.success(f"✅ शानदार! कुल {success_count} ईमेल Spintax के साथ सफलतापूर्वक भेज दिए गए!")
