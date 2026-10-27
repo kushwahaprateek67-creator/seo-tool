@@ -1,3 +1,4 @@
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import random
@@ -73,7 +74,7 @@ st.markdown(
 # ----------------- फ्रेम के अंदर का कंटेंट -----------------
 
 st.markdown(
-    "<h1 style='text-align: center;'>✉️ Bulk Email Tool</h1>",
+    "<h1 style='text-align: center;'>✉️ Bulk Email Tool (Multi-ID Pool)</h1>",
     unsafe_allow_html=True,
 )
 st.markdown("<hr style='border: 1px solid #0066ff;'>", unsafe_allow_html=True)
@@ -83,20 +84,27 @@ st.markdown("<br>", unsafe_allow_html=True)
 # लेआउट को दो भागों में बाँटना
 col1, col2 = st.columns(2, gap="large")
 
-# पहला हिस्सा - अकाउंट की जानकारी
+# पहला हिस्सा - अकाउंट पूल की जानकारी
 with col1:
-    st.markdown("### 1. अकाउंट डिटेल्स")
-    sender_name = st.text_input("Sender Name", value="Prateek Kushwaha", placeholder="अपना नाम लिखें")
-    gmail_id = st.text_input("Gmail ID", placeholder="your-email@gmail.com")
-    app_password = st.text_input(
-        "App Password", type="password", placeholder="16 अंकों का पासवर्ड"
+    st.markdown("### 1. अकाउंट्स पूल डिटेल्स")
+    sender_name = st.text_input(
+        "Sender Name", value="Prateek Kushwaha", placeholder="अपना नाम लिखें"
+    )
+    accounts_data = st.text_area(
+        "Gmail Accounts Pool (email:password - हर लाइन में एक)",
+        height=210,
+        placeholder="id1@gmail.com:app_password_1\nid2@gmail.com:app_password_2",
     )
 
 # दूसरा हिस्सा - ईमेल मैसेज और डेटा
 with col2:
-    st.markdown("### 2. संदेश और डेटा")
-    subject_line = st.text_input("Subject Line", value="Quick question about your content performance", placeholder="ईमेल का विषय")
-    
+    st.markdown("### 2. संदेश और टारगेट डेटा")
+    subject_line = st.text_input(
+        "Subject Line",
+        value="Quick question about your content performance",
+        placeholder="ईमेल का विषय",
+    )
+
     default_template = """Hi,
 
 Searchers asking complex, intent-driven questions are usually closer to buying than those searching broad keywords.
@@ -109,12 +117,15 @@ Regards,
 {sender}"""
 
     email_template = st.text_area(
-        "Email Template", value=default_template, height=180, placeholder="अपना मैसेज यहाँ लिखें..."
+        "Email Template",
+        value=default_template,
+        height=180,
+        placeholder="अपना मैसेज यहाँ लिखें...",
     )
     data = st.text_area(
-        "Data (Email IDs - हर लाइन में एक)",
+        "Target Recipients (Email IDs - हर लाइन में एक)",
         height=110,
-        placeholder="example1@gmail.com\nexample2@gmail.com",
+        placeholder="recipient1@gmail.com\nrecipient2@gmail.com",
     )
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -122,82 +133,124 @@ st.markdown("<br>", unsafe_allow_html=True)
 # सेंड बटन को बीच में करने के लिए
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
-    send_button = st.button("🚀 Send Mail Now", use_container_width=True)
+    send_button = st.button(
+        "🚀 Start Rotational Campaign", use_container_width=True
+    )
 
-# ईमेल भेजने का लॉजिक
+# ईमेल भेजने का लॉजिक (Rotation & Limits के साथ)
 if send_button:
-    if not sender_name or not gmail_id or not app_password or not data:
+    if not sender_name or not accounts_data or not data:
         st.error(
-            "⚠️ कृपया सभी ज़रूरी जानकारी (Sender Name, Gmail ID, Password और Data)"
+            "⚠️ कृपया Sender Name, Accounts Pool और Target Recipients सभी जानकारी"
             " भरें!"
         )
     else:
-        emails_list = [
-            email.strip() for email in data.split("\n") if email.strip()
-        ]
-        total_emails = len(emails_list)
-
-        with st.spinner("ईमेल सर्वर से कनेक्ट हो रहा है..."):
-            try:
-                server = smtplib.SMTP("smtp.gmail.com", 587)
-                server.starttls()
-                server.login(gmail_id, app_password)
-
-                success_count = 0
-                progress_bar = st.progress(0)
-                status_text = st.empty()
-
-                for index, rcv_email in enumerate(emails_list):
-                    # Clean Unsubscribe Link HTML Footer
-                    unsubscribe_html = f"""
-                    <br><br>
-                    <p style='font-size: 12px; color: #888;'>
-                    <a href="mailto:{gmail_id}?subject=Unsubscribe" style='color: #00bfff;'>Unsubscribe</a>
-                    </p>
-                    """
-                    
-                    personalized_body = (
-                        email_template.replace("{sender}", sender_name).replace("\n", "<br>")
-                        + unsubscribe_html
-                    )
-
-                    msg = MIMEMultipart()
-                    msg["From"] = f"{sender_name} <{gmail_id}>"
-                    msg["To"] = rcv_email
-                    msg["Subject"] = subject_line
-                    
-                    # HTML format taaki unsubscribe link clickable rahe
-                    msg.attach(MIMEText(personalized_body, "html"))
-
-                    server.sendmail(gmail_id, rcv_email, msg.as_string())
-                    success_count += 1
-
-                    progress = (index + 1) / total_emails
-                    progress_bar.progress(progress)
-
-                    if index < total_emails - 1:
-                        delay_seconds = random.randint(2,3)
-                        for remaining in range(delay_seconds, 0, -1):
-                            status_text.info(
-                                f"✅ {rcv_email} को भेज दिया। स्पैम से बचने के लिए अगले ईमेल"
-                                f" में {remaining} सेकंड का इंतज़ार..."
-                            )
-                            time.sleep(1)
-                    else:
-                        status_text.success(
-                            f"✅ {rcv_email} को भेज दिया। सभी ईमेल सफलतापूर्वक भेजे गए!"
-                        )
-
-                server.quit()
-                time.sleep(1)
-                status_text.empty()
-                progress_bar.empty()
-
-                st.balloons()
-                st.success(
-                    f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक (एंटी-स्पैम डिले के"
-                    " साथ) भेज दिए गए!"
+        # Accounts parse karein (email:password format)
+        raw_accounts = [acc.strip() for acc in accounts_data.split("\n") if acc.strip()]
+        account_pool = []
+        for acc in raw_accounts:
+            if ":" in acc:
+                email, pwd = acc.split(":", 1)
+                account_pool.append(
+                    {"email": email.strip(), "password": pwd.strip()}
                 )
 
-            except Exception as e:
-                st.error(f"❌ ईमेल भेजने में समस्या आई। एरर: {e}")
+        recipients_list = [
+            email.strip() for email in data.split("\n") if email.strip()
+        ]
+
+        if not account_pool:
+            st.error(
+                "❌ कोई वैध अकाउंट नहीं मिला! कृपया 'email:app_password' फॉर्मेट"
+                " में डालें।"
+            )
+        elif not recipients_list:
+            st.error("❌ कोई टारगेट रिसीपिएंट ईमेल नहीं मिला!")
+        else:
+            # 130 IDs max randomly pick karein pool me se roz ke liye
+            active_accounts = random.sample(
+                account_pool, min(130, len(account_pool))
+            )
+
+            total_recipients = len(recipients_list)
+            recipient_index = 0
+            success_count = 0
+
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+
+            for account in active_accounts:
+                if recipient_index >= total_recipients:
+                    break
+
+                sender_email = account["email"]
+                app_password = account["password"]
+                sent_with_this_id = 0
+                max_per_id = 10  # Har ID se max 10 emails
+
+                try:
+                    server = smtplib.SMTP("smtp.gmail.com", 587)
+                    server.starttls()
+                    server.login(sender_email, app_password)
+
+                    while (
+                        sent_with_this_id < max_per_id
+                        and recipient_index < total_recipients
+                    ):
+                        rcv_email = recipients_list[recipient_index]
+
+                        unsubscribe_html = f"""
+                        <br><br>
+                        <p style='font-size: 12px; color: #888;'>
+                        <a href="mailto:{sender_email}?subject=Unsubscribe" style='color: #00bfff;'>Unsubscribe</a>
+                        </p>
+                        """
+
+                        personalized_body = (
+                            email_template.replace("{sender}", sender_name).replace(
+                                "\n", "<br>"
+                            )
+                            + unsubscribe_html
+                        )
+
+                        msg = MIMEMultipart()
+                        msg["From"] = f"{sender_name} <{sender_email}>"
+                        msg["To"] = rcv_email
+                        msg["Subject"] = subject_line
+                        msg.attach(MIMEText(personalized_body, "html"))
+
+                        server.sendmail(sender_email, rcv_email, msg.as_string())
+                        success_count += 1
+                        sent_with_this_id += 1
+                        recipient_index += 1
+
+                        progress = recipient_index / total_recipients
+                        progress_bar.progress(min(progress, 1.0))
+
+                        # Human-like delay (60 se 120 seconds taaki spam flag na ho)
+                        if recipient_index < total_recipients:
+                            delay_seconds = random.randint(60, 120)
+                            for remaining in range(delay_seconds, 0, -1):
+                                status_text.info(
+                                    f"📨 ID: {sender_email} | Sent: {sent_with_this_id}/10"
+                                    f" | Next email in {remaining}s..."
+                                )
+                                time.sleep(1)
+
+                    server.quit()
+
+                except Exception as e:
+                    status_text.warning(
+                        f"⚠️ ID {sender_email} error: {e}. Moving to next ID..."
+                    )
+                    time.sleep(2)
+                    continue
+
+            status_text.empty()
+            progress_bar.empty()
+
+            st.balloons()
+            st.success(
+                f"✅ शानदार! कुल {success_count} ईमेल सफलतापूर्वक 130 IDs के रोटेशन"
+                " और एंटी-स्पैम डिले के साथ भेज दिए गए!"
+            )
