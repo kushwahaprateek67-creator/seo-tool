@@ -20,7 +20,7 @@ st.set_page_config(page_title="AI SEO Email Outreach", page_icon="✉️", layou
 
 # TOOL LOGIN PASSWORD: replace the placeholder below with your own password.
 # This is separate from your Gmail App Password.
-TOOL_PASSWORD = "Prateek@2026"
+TOOL_PASSWORD = "Prateek@2027"
 
 if "tool_authenticated" not in st.session_state:
     st.session_state.tool_authenticated = False
