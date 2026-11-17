@@ -19,7 +19,7 @@ import streamlit as st
 # PAGE SETTINGS
 # ==================================================
 st.set_page_config(
-    page_title="AI SEO Email Outreach",
+    page_title="SEO Email Outreach",
     page_icon="✉️",
     layout="wide"
 )
