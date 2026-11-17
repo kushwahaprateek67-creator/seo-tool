@@ -121,20 +121,23 @@ hr {
 # ==================================================
 # LOGIN
 # ==================================================
-TOOL_PASSWORD = st.secrets.get("Prateek@2029", "")
+TOOL_PASSWORD = st.secrets.get("tool_password", "")
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not TOOL_PASSWORD:
-    st.title("🔐 AI SEO Tool Setup")
-    st.error(Prateek@2029)
+    st.title("🔐 email tool")
+    st.error(
+        "Tool login password configure नहीं है। "
+        "Streamlit Secrets में tool_password सेट करें।"
+    )
     st.code('tool_password = "अपना-नया-लॉगिन-पासवर्ड"')
     st.stop()
 
 if not st.session_state.authenticated:
     st.title("🔐 AI SEO Tool Login")
-    st.caption("Prateek@2029")
+    st.caption("Please enter your private tool password.")
 
     password = st.text_input(
         "Enter Tool Password",
