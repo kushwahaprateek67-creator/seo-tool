@@ -255,7 +255,7 @@ def parse_recipients(raw_text, suppression_text):
     return unique, duplicates, invalid, blocked
 
 
-def make_email_html(body, sender, sender_email):
+def make_email_html(body, sender,):
     safe_body = html.escape(body).replace("\n", "<br>")
 
     unsubscribe_url = (
