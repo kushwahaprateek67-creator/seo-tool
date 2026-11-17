@@ -121,7 +121,7 @@ hr {
 # ==================================================
 # LOGIN
 # ==================================================
-TOOL_PASSWORD = st.secrets.get("Prateek@2028", "")
+TOOL_PASSWORD = st.secrets.get("Prateek@2029", "")
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
