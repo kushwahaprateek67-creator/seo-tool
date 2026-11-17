@@ -128,10 +128,7 @@ if "authenticated" not in st.session_state:
 
 if not TOOL_PASSWORD:
     st.title("🔐 AI SEO Tool Setup")
-    st.error(
-        "Tool login password configure नहीं है। "
-        "Streamlit Secrets में tool_password सेट करें।"
-    )
+    st.error(Prateek@2029)
     st.code('tool_password = "अपना-नया-लॉगिन-पासवर्ड"')
     st.stop()
 
