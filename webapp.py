@@ -19,7 +19,7 @@ import streamlit as st
 # PAGE SETTINGS
 # ==================================================
 st.set_page_config(
-    page_title="AI SEO Email Outreach",
+    page_title="Email Outreach",
     page_icon="✉️",
     layout="wide"
 )
@@ -620,5 +620,5 @@ if "email_report" in st.session_state:
 st.divider()
 
 st.caption(
-    "AI SEO Email Outreach Tool | Review recipients and respect opt-out requests."
+    "Email Outreach Tool | Review recipients and respect opt-out requests."
 )
