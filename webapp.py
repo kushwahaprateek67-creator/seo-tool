@@ -167,7 +167,7 @@ if not st.session_state.authenticated:
 # ==================================================
 # HEADER
 # ==================================================
-st.title("✉️ AI SEO Email Outreach")
+st.title("✉️ Email Outreach")
 st.caption("Professional business email outreach manager")
 
 
