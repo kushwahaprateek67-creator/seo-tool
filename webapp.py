@@ -146,7 +146,7 @@ if not TOOL_PASSWORD:
     st.stop()
 
 if not st.session_state.authenticated:
-    st.title("🔐 AI SEO Tool Login")
+    st.title("🔐 Tool Login")
     st.caption("Please enter your private tool password.")
 
     password = st.text_input(
